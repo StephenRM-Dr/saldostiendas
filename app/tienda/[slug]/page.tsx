@@ -49,7 +49,7 @@ export default async function StorePage({
             <td className="p-2" />
           </tr>
           {movements.map((m) => (
-            <MovementRow key={m.id} movement={m} />
+            <MovementRow key={m.id} movement={m} slug={store.slug} />
           ))}
           <tr className="bg-yellow-300 font-semibold">
             <td className="p-2">Saldo al Final del día</td>
