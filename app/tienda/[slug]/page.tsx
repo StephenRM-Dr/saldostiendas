@@ -4,6 +4,7 @@ import { getDayLedger } from '@/lib/movements';
 import { formatMoney } from '@/lib/money';
 import MovementRow from './MovementRow';
 import DateNav from './DateNav';
+import MovementForm from './MovementForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,8 @@ export default async function StorePage({
           </tr>
         </tbody>
       </table>
+
+      <MovementForm storeId={store.id} slug={store.slug} date={date} />
     </main>
   );
 }
