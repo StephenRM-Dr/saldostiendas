@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "db:verify": "node --env-file=.env.local scripts/verify-seed.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
