@@ -24,7 +24,7 @@ export default async function StorePage({
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
-  const date = dateParam ?? todayISO();
+  const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayISO();
   const { movements, saldoInicial, saldoFinal } = await getDayLedger(store.id, date);
 
   return (

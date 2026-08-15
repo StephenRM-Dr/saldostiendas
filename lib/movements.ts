@@ -13,16 +13,18 @@ export interface Movement {
 
 export async function getMovementsBefore(storeId: number, date: string): Promise<Movement[]> {
   return (await sql.query(
-    'select * from movements where store_id = $1 and date < $2 order by date, created_at',
+    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves
+     from movements where store_id = $1 and date < $2 order by date, created_at`,
     [storeId, date]
-  )) as unknown as Movement[];
+  )) as Movement[];
 }
 
 export async function getMovementsOnDate(storeId: number, date: string): Promise<Movement[]> {
   return (await sql.query(
-    'select * from movements where store_id = $1 and date = $2 order by created_at',
+    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves
+     from movements where store_id = $1 and date = $2 order by created_at`,
     [storeId, date]
-  )) as unknown as Movement[];
+  )) as Movement[];
 }
 
 export async function getDayLedger(

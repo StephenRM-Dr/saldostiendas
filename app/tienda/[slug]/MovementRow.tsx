@@ -13,11 +13,22 @@ function signedAmount(movement: Movement, field: 'amount_usd' | 'amount_ves'): s
   return formatMoney(signed);
 }
 
+function isKnownConcept(concept: string): boolean {
+  return CONCEPTS.some((c) => c.label === concept);
+}
+
 export default function MovementRow({ movement, slug }: { movement: Movement; slug: string }) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amountUsdInput, setAmountUsdInput] = useState(movement.amount_usd);
   const [amountVesInput, setAmountVesInput] = useState(movement.amount_ves);
+  const [conceptInput, setConceptInput] = useState(
+    isKnownConcept(movement.concept) ? movement.concept : OTRO_LABEL
+  );
+  const [customConceptInput, setCustomConceptInput] = useState(
+    isKnownConcept(movement.concept) ? '' : movement.concept
+  );
+  const [typeInput, setTypeInput] = useState<'ingreso' | 'gasto'>(movement.type);
 
   if (!editing) {
     return (
@@ -29,8 +40,12 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
           <button
             type="button"
             onClick={() => {
+              setError(null);
               setAmountUsdInput(movement.amount_usd);
               setAmountVesInput(movement.amount_ves);
+              setConceptInput(isKnownConcept(movement.concept) ? movement.concept : OTRO_LABEL);
+              setCustomConceptInput(isKnownConcept(movement.concept) ? '' : movement.concept);
+              setTypeInput(movement.type);
               setEditing(true);
             }}
             className="text-blue-600"
@@ -44,9 +59,7 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
 
   async function handleUpdate(formData: FormData) {
     setError(null);
-    const rawConcept = String(formData.get('concept'));
-    const concept =
-      rawConcept === OTRO_LABEL ? String(formData.get('customConcept')).trim() : rawConcept;
+    const concept = conceptInput === OTRO_LABEL ? customConceptInput.trim() : conceptInput;
     const amountUsd = Number(amountUsdInput || 0);
     const amountVes = Number(amountVesInput || 0);
 
@@ -63,6 +76,7 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
     formData.set('slug', slug);
     formData.set('date', movement.date);
     formData.set('concept', concept);
+    formData.set('type', typeInput);
 
     try {
       await updateMovementAction(formData);
@@ -77,10 +91,12 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
     const formData = new FormData();
     formData.set('id', String(movement.id));
     formData.set('slug', slug);
-    await deleteMovementAction(formData);
+    try {
+      await deleteMovementAction(formData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al eliminar.');
+    }
   }
-
-  const knownConcept = CONCEPTS.some((c) => c.label === movement.concept);
 
   return (
     <tr className="border-b bg-gray-50">
@@ -88,7 +104,8 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
         <form action={handleUpdate} className="flex flex-wrap items-center gap-2">
           <select
             name="concept"
-            defaultValue={knownConcept ? movement.concept : OTRO_LABEL}
+            value={conceptInput}
+            onChange={(e) => setConceptInput(e.target.value)}
             className="rounded border p-1"
           >
             {CONCEPTS.map((c) => (
@@ -101,11 +118,17 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
           <input
             type="text"
             name="customConcept"
-            defaultValue={knownConcept ? '' : movement.concept}
+            value={customConceptInput}
+            onChange={(e) => setCustomConceptInput(e.target.value)}
             placeholder="Concepto libre"
             className="rounded border p-1"
           />
-          <select name="type" defaultValue={movement.type} className="rounded border p-1">
+          <select
+            name="type"
+            value={typeInput}
+            onChange={(e) => setTypeInput(e.target.value as 'ingreso' | 'gasto')}
+            className="rounded border p-1"
+          >
             <option value="ingreso">Ingreso</option>
             <option value="gasto">Gasto</option>
           </select>
@@ -130,7 +153,14 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
           <button type="submit" className="rounded bg-blue-600 px-2 py-1 text-white">
             Guardar
           </button>
-          <button type="button" onClick={() => setEditing(false)} className="rounded border px-2 py-1">
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setEditing(false);
+            }}
+            className="rounded border px-2 py-1"
+          >
             Cancelar
           </button>
           <button
