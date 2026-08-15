@@ -8,7 +8,7 @@ import DateNav from './DateNav';
 export const dynamic = 'force-dynamic';
 
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas' }).format(new Date());
 }
 
 export default async function StorePage({
