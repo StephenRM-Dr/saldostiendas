@@ -16,6 +16,8 @@ export default function MovementForm({
   const [conceptLabel, setConceptLabel] = useState(CONCEPTS[0].label);
   const [customConcept, setCustomConcept] = useState('');
   const [type, setType] = useState<'ingreso' | 'gasto'>(CONCEPTS[0].type);
+  const [amountUsdInput, setAmountUsdInput] = useState('0');
+  const [amountVesInput, setAmountVesInput] = useState('0');
   const [error, setError] = useState<string | null>(null);
 
   function handleConceptChange(label: string) {
@@ -27,8 +29,8 @@ export default function MovementForm({
   async function handleSubmit(formData: FormData) {
     setError(null);
     const finalConcept = conceptLabel === OTRO_LABEL ? customConcept.trim() : conceptLabel;
-    const amountUsd = Number(formData.get('amountUsd') || 0);
-    const amountVes = Number(formData.get('amountVes') || 0);
+    const amountUsd = Number(amountUsdInput || 0);
+    const amountVes = Number(amountVesInput || 0);
 
     if (!finalConcept) {
       setError('Indica el concepto.');
@@ -49,6 +51,8 @@ export default function MovementForm({
       setConceptLabel(CONCEPTS[0].label);
       setType(CONCEPTS[0].type);
       setCustomConcept('');
+      setAmountUsdInput('0');
+      setAmountVesInput('0');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar el movimiento.');
     }
@@ -105,11 +109,27 @@ export default function MovementForm({
       <div className="flex gap-3">
         <div className="flex-1">
           <label className="block text-sm">Monto USD</label>
-          <input type="number" step="0.01" min="0" name="amountUsd" defaultValue="0" className="w-full rounded border p-2" />
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            name="amountUsd"
+            value={amountUsdInput}
+            onChange={(e) => setAmountUsdInput(e.target.value)}
+            className="w-full rounded border p-2"
+          />
         </div>
         <div className="flex-1">
           <label className="block text-sm">Monto Bs</label>
-          <input type="number" step="0.01" min="0" name="amountVes" defaultValue="0" className="w-full rounded border p-2" />
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            name="amountVes"
+            value={amountVesInput}
+            onChange={(e) => setAmountVesInput(e.target.value)}
+            className="w-full rounded border p-2"
+          />
         </div>
       </div>
 
