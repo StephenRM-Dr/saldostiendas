@@ -6,6 +6,7 @@ import { todayISOCaracas } from '@/lib/date';
 import MovementRow from './MovementRow';
 import DateNav from './DateNav';
 import MovementForm from './MovementForm';
+import TelegramButton from './TelegramButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,7 @@ export default async function StorePage({
     <main className="mx-auto max-w-2xl p-4">
       <h1 className="text-xl font-semibold">{store.name}</h1>
       <DateNav slug={store.slug} date={date} />
+      <TelegramButton slug={store.slug} date={date} />
 
       <table className="mt-4 w-full text-sm">
         <thead>
