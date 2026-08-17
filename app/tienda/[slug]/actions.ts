@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { createMovement, updateMovement, deleteMovement, getDayLedger } from '@/lib/movements';
 import { getStoreBySlug } from '@/lib/stores';
-import { formatReportMessage, sendTelegramMessage } from '@/lib/telegram';
+import { formatReportMessage, sendTelegramPhoto } from '@/lib/telegram';
+import { generateReportImageBuffer } from '@/lib/reportImage';
 
 function parseAndValidate(formData: FormData) {
   const concept = String(formData.get('concept') ?? '').trim();
@@ -60,6 +61,7 @@ export async function sendReportAction(formData: FormData) {
   }
 
   const ledger = await getDayLedger(store.id, date);
-  const message = formatReportMessage(store.name, date, ledger);
-  await sendTelegramMessage(store.telegram_chat_id, message);
+  const caption = formatReportMessage(store.name, date, ledger);
+  const imageBuffer = await generateReportImageBuffer(store.name, date, ledger);
+  await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption);
 }

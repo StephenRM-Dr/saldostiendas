@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listStores } from '@/lib/stores';
 import { getDayLedger } from '@/lib/movements';
-import { formatReportMessage, sendTelegramMessage } from '@/lib/telegram';
+import { formatReportMessage, sendTelegramPhoto } from '@/lib/telegram';
+import { generateReportImageBuffer } from '@/lib/reportImage';
 import { todayISOCaracas } from '@/lib/date';
 
 export const dynamic = 'force-dynamic';
@@ -30,8 +31,9 @@ export async function GET(request: NextRequest) {
 
     try {
       const ledger = await getDayLedger(store.id, date);
-      const message = formatReportMessage(store.name, date, ledger);
-      await sendTelegramMessage(store.telegram_chat_id, message);
+      const caption = formatReportMessage(store.name, date, ledger);
+      const imageBuffer = await generateReportImageBuffer(store.name, date, ledger);
+      await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption);
       results.push({ slug: store.slug, status: 'sent' });
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
