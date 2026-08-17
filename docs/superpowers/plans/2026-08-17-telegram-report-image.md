@@ -316,7 +316,7 @@ Expected: PASS (3 tests).
 
 This is the highest-risk step in this task — `ImageResponse`/Satori has real constraints (flexbox-only CSS, specific font handling) that no unit test catches. Verify it actually works by generating a real PNG through the running app and viewing it, in isolation from the Telegram-sending code (Tasks 3-4) — so a rendering problem here isn't confused with a Telegram API problem later. Plain `node -e` can't import a `.tsx` file directly (no loader configured in this project), so use a temporary Route Handler instead:
 
-Create `app/api/_debug-report-image/route.ts`:
+Create `app/api/debug-report-image/route.ts`:
 
 ```ts
 import { generateReportImageBuffer } from '@/lib/reportImage';
@@ -355,12 +355,12 @@ Run it and fetch the image:
 ```bash
 npm run dev &
 timeout 30 bash -c 'until curl -sf http://localhost:3000 >/dev/null; do sleep 1; done'
-curl -s http://localhost:3000/api/_debug-report-image -o /tmp/report-preview.png
+curl -s http://localhost:3000/api/debug-report-image -o /tmp/report-preview.png
 ```
 
 View `/tmp/report-preview.png` (e.g. with the Read tool, if available) and confirm: the table renders with the right colors and column alignment, both movement rows show the correct signed amounts, and — importantly — the accented characters ("Cristóbal", "día") render correctly with Satori's default font rather than as boxes or missing glyphs. If accents don't render correctly, note it as a concern; the fix (bundling a custom font via `ImageResponse`'s `fonts` option) is out of scope for this step but must be flagged, not silently ignored.
 
-Stop the dev server, then **delete** `app/api/_debug-report-image/route.ts` — it was only scaffolding for this check, not part of the shipped feature.
+Stop the dev server, then **delete** `app/api/debug-report-image/route.ts` — it was only scaffolding for this check, not part of the shipped feature.
 
 - [ ] **Step 6: Run the full suite**
 
