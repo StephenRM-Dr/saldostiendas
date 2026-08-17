@@ -430,7 +430,7 @@ export async function sendTelegramPhoto(
   formData.set('chat_id', chatId);
   formData.set('caption', caption);
   formData.set('parse_mode', 'Markdown');
-  formData.set('photo', new Blob([imageBuffer], { type: 'image/png' }), 'reporte.png');
+  formData.set('photo', new Blob([new Uint8Array(imageBuffer)], { type: 'image/png' }), 'reporte.png');
 
   const response = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
     method: 'POST',

@@ -43,16 +43,25 @@ export function formatReportMessage(
   ].join('\n');
 }
 
-export async function sendTelegramMessage(chatId: string, text: string): Promise<void> {
+export async function sendTelegramPhoto(
+  chatId: string,
+  imageBuffer: Buffer,
+  caption: string
+): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
     throw new Error('TELEGRAM_BOT_TOKEN is not set');
   }
 
-  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  const formData = new FormData();
+  formData.set('chat_id', chatId);
+  formData.set('caption', caption);
+  formData.set('parse_mode', 'Markdown');
+  formData.set('photo', new Blob([new Uint8Array(imageBuffer)], { type: 'image/png' }), 'reporte.png');
+
+  const response = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
+    body: formData,
   });
 
   if (!response.ok) {
