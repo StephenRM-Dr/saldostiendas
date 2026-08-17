@@ -1,17 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { formatMoney, toCents } from '@/lib/money';
 import { updateMovementAction, deleteMovementAction } from './actions';
 import { CONCEPTS, OTRO_LABEL } from '@/lib/concepts';
+import { signedAmount } from '@/lib/movementDisplay';
 import type { Movement } from '@/lib/movements';
-
-function signedAmount(movement: Movement, field: 'amount_usd' | 'amount_ves'): string {
-  const cents = toCents(movement[field]);
-  if (cents === 0) return '';
-  const signed = movement.type === 'gasto' ? -cents : cents;
-  return formatMoney(signed);
-}
 
 function isKnownConcept(concept: string): boolean {
   return CONCEPTS.some((c) => c.label === concept);
