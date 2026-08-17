@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createMovement, updateMovement, deleteMovement } from '@/lib/movements';
+import { createMovement, updateMovement, deleteMovement, getDayLedger } from '@/lib/movements';
+import { getStoreBySlug } from '@/lib/stores';
+import { formatReportMessage, sendTelegramMessage } from '@/lib/telegram';
 
 function parseAndValidate(formData: FormData) {
   const concept = String(formData.get('concept') ?? '').trim();
@@ -43,4 +45,21 @@ export async function deleteMovementAction(formData: FormData) {
   const slug = String(formData.get('slug'));
   await deleteMovement(id);
   revalidatePath(`/tienda/${slug}`);
+}
+
+export async function sendReportAction(formData: FormData) {
+  const slug = String(formData.get('slug'));
+  const date = String(formData.get('date'));
+
+  const store = await getStoreBySlug(slug);
+  if (!store) {
+    throw new Error('Tienda no encontrada.');
+  }
+  if (!store.telegram_chat_id) {
+    throw new Error('Esta tienda no tiene Telegram configurado.');
+  }
+
+  const ledger = await getDayLedger(store.id, date);
+  const message = formatReportMessage(store.name, date, ledger);
+  await sendTelegramMessage(store.telegram_chat_id, message);
 }
