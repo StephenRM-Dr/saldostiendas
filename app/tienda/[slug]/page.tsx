@@ -2,15 +2,12 @@ import { notFound } from 'next/navigation';
 import { getStoreBySlug } from '@/lib/stores';
 import { getDayLedger } from '@/lib/movements';
 import { formatMoney } from '@/lib/money';
+import { todayISOCaracas } from '@/lib/date';
 import MovementRow from './MovementRow';
 import DateNav from './DateNav';
 import MovementForm from './MovementForm';
 
 export const dynamic = 'force-dynamic';
-
-function todayISO(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas' }).format(new Date());
-}
 
 export default async function StorePage({
   params,
@@ -24,7 +21,7 @@ export default async function StorePage({
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
-  const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayISO();
+  const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayISOCaracas();
   const { movements, saldoInicial, saldoFinal } = await getDayLedger(store.id, date);
 
   return (
