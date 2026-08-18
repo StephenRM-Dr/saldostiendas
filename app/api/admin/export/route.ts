@@ -3,6 +3,7 @@ import ExcelJS from 'exceljs';
 import { listStores } from '@/lib/stores';
 import { getRangeLedger } from '@/lib/movements';
 import { buildStoreRows } from '@/lib/adminExport';
+import { isAuthorized } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,13 +12,20 @@ function isValidDate(value: string | null): value is string {
 }
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorized(request.headers.get('authorization'))) {
+    return new Response('Autenticacion requerida.', {
+      status: 401,
+      headers: { 'WWW-Authenticate': 'Basic realm="Admin", charset="UTF-8"', 'Cache-Control': 'no-store' },
+    });
+  }
+
   const from = request.nextUrl.searchParams.get('from');
   const to = request.nextUrl.searchParams.get('to');
 
   if (!isValidDate(from) || !isValidDate(to) || from > to) {
     return new Response('Rango de fechas invalido: verifica que "desde" y "hasta" esten presentes y que "desde" no sea posterior a "hasta".', {
       status: 400,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   }
 
@@ -34,18 +42,27 @@ export async function GET(request: NextRequest) {
   ];
   sheet.getRow(1).font = { bold: true };
 
-  for (const store of stores) {
-    const ledger = await getRangeLedger(store.id, from, to);
-    const rows = buildStoreRows(store.name, from, to, ledger);
-    sheet.addRows(rows);
-  }
+  let buffer: ExcelJS.Buffer;
+  try {
+    for (const store of stores) {
+      const ledger = await getRangeLedger(store.id, from, to);
+      const rows = buildStoreRows(store.name, from, to, ledger);
+      sheet.addRows(rows);
+    }
 
-  const buffer = await workbook.xlsx.writeBuffer();
+    buffer = await workbook.xlsx.writeBuffer();
+  } catch {
+    return new Response('No se pudo generar el archivo. Verifica que las fechas sean validas e intenta de nuevo.', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
 
   return new Response(buffer, {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename="movimientos_${from}_a_${to}.xlsx"`,
+      'Cache-Control': 'no-store',
     },
   });
 }
