@@ -17,6 +17,8 @@ create table if not exists movements (
 
 create index if not exists movements_store_date_idx on movements (store_id, date);
 
+alter table stores add column if not exists telegram_chat_id text;
+
 insert into stores (slug, name) values
   ('san-cristobal', 'San Cristóbal'),
   ('merida', 'Mérida'),
