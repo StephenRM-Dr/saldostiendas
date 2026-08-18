@@ -1,10 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { createMovement, updateMovement, deleteMovement, getDayLedger } from '@/lib/movements';
 import { getStoreBySlug } from '@/lib/stores';
 import { formatReportMessage, sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
+import { storeSessionCookieName } from '@/lib/storeAuth';
 
 function parseAndValidate(formData: FormData) {
   const concept = String(formData.get('concept') ?? '').trim();
@@ -64,4 +67,11 @@ export async function sendReportAction(formData: FormData) {
   const caption = formatReportMessage(store.name, date, ledger);
   const imageBuffer = await generateReportImageBuffer(store.name, date, ledger);
   await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption);
+}
+
+export async function logoutAction(formData: FormData) {
+  const slug = String(formData.get('slug'));
+  const cookieStore = await cookies();
+  cookieStore.delete(storeSessionCookieName(slug));
+  redirect(`/tienda/${slug}/login`);
 }

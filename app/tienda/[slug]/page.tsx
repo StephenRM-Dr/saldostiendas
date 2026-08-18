@@ -1,5 +1,8 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getStoreBySlug } from '@/lib/stores';
+import { cookies } from 'next/headers';
+import { verifyStoreSession, storeSessionCookieName } from '@/lib/storeAuth';
+import { logoutAction } from './actions';
 import { getDayLedger } from '@/lib/movements';
 import { formatMoney } from '@/lib/money';
 import { todayISOCaracas } from '@/lib/date';
@@ -22,12 +25,26 @@ export default async function StorePage({
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(storeSessionCookieName(store.slug))?.value;
+  if (!verifyStoreSession(sessionCookie, store.slug)) {
+    redirect(`/tienda/${store.slug}/login`);
+  }
+
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayISOCaracas();
   const { movements, saldoInicial, saldoFinal } = await getDayLedger(store.id, date);
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <h1 className="text-xl font-semibold">{store.name}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">{store.name}</h1>
+        <form action={logoutAction}>
+          <input type="hidden" name="slug" value={store.slug} />
+          <button type="submit" className="text-sm text-blue-600 underline">
+            Cerrar sesion
+          </button>
+        </form>
+      </div>
       <DateNav slug={store.slug} date={date} />
       <TelegramButton slug={store.slug} date={date} />
 
