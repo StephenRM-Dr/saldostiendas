@@ -10,24 +10,37 @@ export interface ExportRow {
   montoVes: number;
 }
 
+export interface RowFilter {
+  saldoInicial: boolean;
+  ingreso: boolean;
+  egreso: boolean;
+  saldoFinal: boolean;
+}
+
 export function buildStoreRows(
   storeName: string,
   from: string,
   to: string,
-  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance }
+  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
+  filter: RowFilter
 ): ExportRow[] {
   const rows: ExportRow[] = [];
 
-  rows.push({
-    tienda: storeName,
-    fecha: from,
-    concepto: 'Saldo inicial del rango',
-    tipo: '',
-    montoUsd: ledger.saldoInicial.usdCents / 100,
-    montoVes: ledger.saldoInicial.vesCents / 100,
-  });
+  if (filter.saldoInicial) {
+    rows.push({
+      tienda: storeName,
+      fecha: from,
+      concepto: 'Saldo inicial del rango',
+      tipo: '',
+      montoUsd: ledger.saldoInicial.usdCents / 100,
+      montoVes: ledger.saldoInicial.vesCents / 100,
+    });
+  }
 
   for (const movement of ledger.movements) {
+    if (movement.type === 'ingreso' && !filter.ingreso) continue;
+    if (movement.type === 'gasto' && !filter.egreso) continue;
+
     rows.push({
       tienda: storeName,
       fecha: movement.date,
@@ -38,14 +51,16 @@ export function buildStoreRows(
     });
   }
 
-  rows.push({
-    tienda: storeName,
-    fecha: to,
-    concepto: 'Saldo final del rango',
-    tipo: '',
-    montoUsd: ledger.saldoFinal.usdCents / 100,
-    montoVes: ledger.saldoFinal.vesCents / 100,
-  });
+  if (filter.saldoFinal) {
+    rows.push({
+      tienda: storeName,
+      fecha: to,
+      concepto: 'Saldo final del rango',
+      tipo: '',
+      montoUsd: ledger.saldoFinal.usdCents / 100,
+      montoVes: ledger.saldoFinal.vesCents / 100,
+    });
+  }
 
   return rows;
 }

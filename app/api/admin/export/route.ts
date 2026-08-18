@@ -2,13 +2,26 @@ import { NextRequest } from 'next/server';
 import ExcelJS from 'exceljs';
 import { listStores } from '@/lib/stores';
 import { getRangeLedger } from '@/lib/movements';
-import { buildStoreRows } from '@/lib/adminExport';
+import { buildStoreRows, type RowFilter } from '@/lib/adminExport';
 import { isAuthorized } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
 function isValidDate(value: string | null): value is string {
   return value !== null && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function parseRowFilter(values: string[]): RowFilter {
+  return {
+    saldoInicial: values.includes('saldoInicial'),
+    ingreso: values.includes('ingreso'),
+    egreso: values.includes('egreso'),
+    saldoFinal: values.includes('saldoFinal'),
+  };
+}
+
+function isEmptyFilter(filter: RowFilter): boolean {
+  return !filter.saldoInicial && !filter.ingreso && !filter.egreso && !filter.saldoFinal;
 }
 
 export async function GET(request: NextRequest) {
@@ -24,6 +37,15 @@ export async function GET(request: NextRequest) {
 
   if (!isValidDate(from) || !isValidDate(to) || from > to) {
     return new Response('Rango de fechas invalido: verifica que "desde" y "hasta" esten presentes y que "desde" no sea posterior a "hasta".', {
+      status: 400,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+
+  const rowFilter = parseRowFilter(request.nextUrl.searchParams.getAll('rows'));
+
+  if (isEmptyFilter(rowFilter)) {
+    return new Response('Debes seleccionar al menos un tipo de fila para exportar.', {
       status: 400,
       headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
     });
@@ -46,7 +68,7 @@ export async function GET(request: NextRequest) {
   try {
     for (const store of stores) {
       const ledger = await getRangeLedger(store.id, from, to);
-      const rows = buildStoreRows(store.name, from, to, ledger);
+      const rows = buildStoreRows(store.name, from, to, ledger, rowFilter);
       sheet.addRows(rows);
     }
 
