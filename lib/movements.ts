@@ -27,6 +27,36 @@ export async function getMovementsOnDate(storeId: number, date: string): Promise
   )) as Movement[];
 }
 
+export async function getMovementsInRange(
+  storeId: number,
+  from: string,
+  to: string
+): Promise<Movement[]> {
+  return (await sql.query(
+    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves
+     from movements where store_id = $1 and date >= $2 and date <= $3 order by date, created_at`,
+    [storeId, from, to]
+  )) as Movement[];
+}
+
+export async function getRangeLedger(
+  storeId: number,
+  from: string,
+  to: string
+): Promise<{ movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance }> {
+  const [before, inRange] = await Promise.all([
+    getMovementsBefore(storeId, from),
+    getMovementsInRange(storeId, from, to),
+  ]);
+  const saldoInicial = computeBalance(before);
+  const rangeChange = computeBalance(inRange);
+  const saldoFinal: Balance = {
+    usdCents: saldoInicial.usdCents + rangeChange.usdCents,
+    vesCents: saldoInicial.vesCents + rangeChange.vesCents,
+  };
+  return { movements: inRange, saldoInicial, saldoFinal };
+}
+
 export async function getDayLedger(
   storeId: number,
   date: string
