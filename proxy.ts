@@ -18,7 +18,7 @@ function handleAdmin(request: NextRequest): Response {
 
 function handleTienda(request: NextRequest): Response {
   const { pathname } = request.nextUrl;
-  if (pathname.endsWith('/login')) {
+  if (pathname.endsWith('/login') || pathname.endsWith('/manifest.webmanifest')) {
     return NextResponse.next();
   }
 
