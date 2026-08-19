@@ -52,7 +52,7 @@ export async function updateMovementAction(formData: FormData) {
   const { concept, type, amountUsd, amountVes, date } = parseAndValidate(formData);
 
   const persistedDate = await getMovementDate(id);
-  if (persistedDate === null || isDateClosed(persistedDate)) {
+  if (persistedDate === null || isDateClosed(persistedDate) || isDateClosed(date)) {
     throw new Error('No se pueden modificar movimientos de un día ya cerrado.');
   }
 
