@@ -21,6 +21,7 @@ export default function MovementRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [amountUsdInput, setAmountUsdInput] = useState(movement.amount_usd);
   const [amountVesInput, setAmountVesInput] = useState(movement.amount_ves);
   const [conceptInput, setConceptInput] = useState(
@@ -32,12 +33,28 @@ export default function MovementRow({
   const [typeInput, setTypeInput] = useState<'ingreso' | 'gasto'>(movement.type);
 
   if (!editing) {
+    const amountColor = movement.type === 'gasto' ? 'text-rose-600' : 'text-emerald-600';
     return (
-      <tr className="border-b">
-        <td className="p-2">{movement.concept}</td>
-        <td className="p-2 text-right">{signedAmount(movement, 'amount_usd')}</td>
-        <td className="p-2 text-right">{signedAmount(movement, 'amount_ves')}</td>
-        <td className="p-2 text-right">
+      <tr className="border-b border-slate-100 hover:bg-slate-50">
+        <td className="p-3">
+          <span className="text-slate-800">{movement.concept}</span>
+          <span
+            className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
+              movement.type === 'gasto'
+                ? 'bg-rose-50 text-rose-600'
+                : 'bg-emerald-50 text-emerald-600'
+            }`}
+          >
+            {movement.type === 'gasto' ? 'Gasto' : 'Ingreso'}
+          </span>
+        </td>
+        <td className={`p-3 text-right font-medium ${amountColor}`}>
+          {signedAmount(movement, 'amount_usd')}
+        </td>
+        <td className={`p-3 text-right font-medium ${amountColor}`}>
+          {signedAmount(movement, 'amount_ves')}
+        </td>
+        <td className="p-3 text-right">
           {!readOnly && (
             <button
               type="button"
@@ -50,7 +67,7 @@ export default function MovementRow({
                 setTypeInput(movement.type);
                 setEditing(true);
               }}
-              className="text-blue-600"
+              className="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
             >
               Editar
             </button>
@@ -81,7 +98,9 @@ export default function MovementRow({
     formData.set('concept', concept);
     formData.set('type', typeInput);
 
+    setSaving(true);
     const result = await updateMovementAction(formData);
+    setSaving(false);
     if (!result.ok) {
       setError(result.error);
       return;
@@ -94,86 +113,105 @@ export default function MovementRow({
     const formData = new FormData();
     formData.set('id', String(movement.id));
     formData.set('slug', slug);
+    setSaving(true);
     const result = await deleteMovementAction(formData);
+    setSaving(false);
     if (!result.ok) {
       setError(result.error);
     }
   }
 
   return (
-    <tr className="border-b bg-gray-50">
-      <td colSpan={4} className="p-2">
-        <form action={handleUpdate} className="flex flex-wrap items-center gap-2">
-          <select
-            name="concept"
-            value={conceptInput}
-            onChange={(e) => setConceptInput(e.target.value)}
-            className="rounded border p-1"
-          >
-            {CONCEPTS.map((c) => (
-              <option key={c.label} value={c.label}>
-                {c.label}
-              </option>
-            ))}
-            <option value={OTRO_LABEL}>{OTRO_LABEL}</option>
-          </select>
-          <input
-            type="text"
-            name="customConcept"
-            value={customConceptInput}
-            onChange={(e) => setCustomConceptInput(e.target.value)}
-            placeholder="Concepto libre"
-            className="rounded border p-1"
-          />
-          <select
-            name="type"
-            value={typeInput}
-            onChange={(e) => setTypeInput(e.target.value as 'ingreso' | 'gasto')}
-            className="rounded border p-1"
-          >
-            <option value="ingreso">Ingreso</option>
-            <option value="gasto">Gasto</option>
-          </select>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            name="amountUsd"
-            value={amountUsdInput}
-            onChange={(e) => setAmountUsdInput(e.target.value)}
-            className="w-24 rounded border p-1"
-          />
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            name="amountVes"
-            value={amountVesInput}
-            onChange={(e) => setAmountVesInput(e.target.value)}
-            className="w-24 rounded border p-1"
-          />
-          <button type="submit" className="rounded bg-blue-600 px-2 py-1 text-white">
-            Guardar
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              setEditing(false);
-            }}
-            className="rounded border px-2 py-1"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="rounded border border-red-600 px-2 py-1 text-red-600"
-          >
-            Eliminar
-          </button>
+    <tr className="border-b border-slate-100 bg-slate-50">
+      <td colSpan={4} className="p-3">
+        <form action={handleUpdate} className="space-y-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <select
+              name="concept"
+              value={conceptInput}
+              onChange={(e) => setConceptInput(e.target.value)}
+              className="col-span-2 rounded-md border border-slate-300 bg-white p-2 text-sm sm:col-span-1"
+            >
+              {CONCEPTS.map((c) => (
+                <option key={c.label} value={c.label}>
+                  {c.label}
+                </option>
+              ))}
+              <option value={OTRO_LABEL}>{OTRO_LABEL}</option>
+            </select>
+            {conceptInput === OTRO_LABEL && (
+              <input
+                type="text"
+                name="customConcept"
+                value={customConceptInput}
+                onChange={(e) => setCustomConceptInput(e.target.value)}
+                placeholder="Concepto libre"
+                className="col-span-2 rounded-md border border-slate-300 bg-white p-2 text-sm sm:col-span-1"
+              />
+            )}
+            <select
+              name="type"
+              value={typeInput}
+              onChange={(e) => setTypeInput(e.target.value as 'ingreso' | 'gasto')}
+              className="rounded-md border border-slate-300 bg-white p-2 text-sm"
+            >
+              <option value="ingreso">Ingreso</option>
+              <option value="gasto">Gasto</option>
+            </select>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              name="amountUsd"
+              value={amountUsdInput}
+              onChange={(e) => setAmountUsdInput(e.target.value)}
+              placeholder="Monto USD"
+              className="rounded-md border border-slate-300 bg-white p-2 text-sm"
+            />
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              name="amountVes"
+              value={amountVesInput}
+              onChange={(e) => setAmountVesInput(e.target.value)}
+              placeholder="Monto Bs"
+              className="rounded-md border border-slate-300 bg-white p-2 text-sm"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Guardando...' : 'Guardar'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setEditing(false);
+              }}
+              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-100"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={saving}
+              className="ml-auto rounded-md border border-rose-200 px-3 py-2 text-sm text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+            >
+              Eliminar
+            </button>
+          </div>
         </form>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+            {error}
+          </p>
+        )}
       </td>
     </tr>
   );

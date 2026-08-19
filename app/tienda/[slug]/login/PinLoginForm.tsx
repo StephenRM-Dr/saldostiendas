@@ -9,7 +9,7 @@ export default function PinLoginForm({ slug }: { slug: string }) {
   const [state, formAction, pending] = useActionState(verifyPinAction, initialState);
 
   return (
-    <form action={formAction} className="mt-4 space-y-3">
+    <form action={formAction} className="mt-5 space-y-4">
       <input type="hidden" name="slug" value={slug} />
       <input
         type="text"
@@ -19,13 +19,17 @@ export default function PinLoginForm({ slug }: { slug: string }) {
         maxLength={4}
         required
         autoFocus
-        className="w-full rounded border p-2 text-center text-2xl tracking-[0.5em]"
+        className="w-full rounded-lg border border-slate-300 p-3 text-center text-2xl tracking-[0.5em] focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
       />
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state.error && (
+        <p className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+          {state.error}
+        </p>
+      )}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+        className="w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
       >
         {pending ? 'Verificando...' : 'Entrar'}
       </button>
