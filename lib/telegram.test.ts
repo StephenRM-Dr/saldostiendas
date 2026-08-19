@@ -62,6 +62,21 @@ describe('formatReportMessage', () => {
     );
   });
 
+  it('uses a custom label instead of "Cierre" when provided', () => {
+    const message = formatReportMessage(
+      'Barinas',
+      '2026-08-17',
+      {
+        movements: [],
+        saldoInicial: { usdCents: 0, vesCents: 0 },
+        saldoFinal: { usdCents: 0, vesCents: 0 },
+      },
+      'Reporte de Saldos'
+    );
+
+    expect(message.split('\n')[0]).toBe('*Barinas* — Reporte de Saldos 17/08/2026');
+  });
+
   it('shows both currencies on the same line when both are non-zero', () => {
     const message = formatReportMessage('Barinas', '2026-08-17', {
       movements: [

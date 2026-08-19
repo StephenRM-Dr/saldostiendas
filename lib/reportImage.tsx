@@ -80,7 +80,8 @@ function Row({
 export function buildReportImageElement(
   storeName: string,
   date: string,
-  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance }
+  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
+  label: string = 'Cierre'
 ) {
   const { movements, saldoInicial, saldoFinal } = ledger;
 
@@ -105,7 +106,7 @@ export function buildReportImageElement(
           fontWeight: 700,
         }}
       >
-        {`${storeName} — Cierre ${formatDateDMY(date)}`}
+        {`${storeName} — ${label} ${formatDateDMY(date)}`}
       </div>
       <Row concept="Concepto" usd="Dólares" ves="Bolívares" background={YELLOW} bold />
       <Row
@@ -142,10 +143,11 @@ export function buildReportImageElement(
 export async function generateReportImageBuffer(
   storeName: string,
   date: string,
-  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance }
+  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
+  label: string = 'Cierre'
 ): Promise<Buffer> {
   const height = calculateImageHeight(ledger.movements.length);
-  const imageResponse = new ImageResponse(buildReportImageElement(storeName, date, ledger), {
+  const imageResponse = new ImageResponse(buildReportImageElement(storeName, date, ledger, label), {
     width: IMAGE_WIDTH,
     height,
   });

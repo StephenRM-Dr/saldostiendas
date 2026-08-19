@@ -46,16 +46,16 @@ export default function MovementForm({
     formData.set('storeId', String(storeId));
     formData.set('slug', slug);
 
-    try {
-      await addMovementAction(formData);
-      setConceptLabel(CONCEPTS[0].label);
-      setType(CONCEPTS[0].type);
-      setCustomConcept('');
-      setAmountUsdInput('0');
-      setAmountVesInput('0');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar el movimiento.');
+    const result = await addMovementAction(formData);
+    if (!result.ok) {
+      setError(result.error);
+      return;
     }
+    setConceptLabel(CONCEPTS[0].label);
+    setType(CONCEPTS[0].type);
+    setCustomConcept('');
+    setAmountUsdInput('0');
+    setAmountVesInput('0');
   }
 
   return (
