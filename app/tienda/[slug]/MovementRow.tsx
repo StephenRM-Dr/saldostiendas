@@ -84,6 +84,7 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
     const formData = new FormData();
     formData.set('id', String(movement.id));
     formData.set('slug', slug);
+    formData.set('date', movement.date);
     try {
       await deleteMovementAction(formData);
     } catch (err) {

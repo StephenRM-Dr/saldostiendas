@@ -8,6 +8,7 @@ import { getStoreBySlug } from '@/lib/stores';
 import { formatReportMessage, sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
 import { storeSessionCookieName } from '@/lib/storeAuth';
+import { isDateClosed } from '@/lib/date';
 
 function parseAndValidate(formData: FormData) {
   const concept = String(formData.get('concept') ?? '').trim();
@@ -31,6 +32,10 @@ export async function addMovementAction(formData: FormData) {
   const slug = String(formData.get('slug'));
   const { concept, type, amountUsd, amountVes, date } = parseAndValidate(formData);
 
+  if (isDateClosed(date)) {
+    throw new Error('No se pueden modificar movimientos de un día ya cerrado.');
+  }
+
   await createMovement({ storeId, date, concept, type, amountUsd, amountVes });
   revalidatePath(`/tienda/${slug}`);
 }
@@ -40,6 +45,10 @@ export async function updateMovementAction(formData: FormData) {
   const slug = String(formData.get('slug'));
   const { concept, type, amountUsd, amountVes, date } = parseAndValidate(formData);
 
+  if (isDateClosed(date)) {
+    throw new Error('No se pueden modificar movimientos de un día ya cerrado.');
+  }
+
   await updateMovement(id, { date, concept, type, amountUsd, amountVes });
   revalidatePath(`/tienda/${slug}`);
 }
@@ -47,6 +56,12 @@ export async function updateMovementAction(formData: FormData) {
 export async function deleteMovementAction(formData: FormData) {
   const id = Number(formData.get('id'));
   const slug = String(formData.get('slug'));
+  const date = String(formData.get('date'));
+
+  if (isDateClosed(date)) {
+    throw new Error('No se pueden modificar movimientos de un día ya cerrado.');
+  }
+
   await deleteMovement(id);
   revalidatePath(`/tienda/${slug}`);
 }
