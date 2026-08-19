@@ -25,17 +25,23 @@ export default function TelegramButton({ slug, date }: { slug: string; date: str
   }
 
   return (
-    <div className="mt-2">
+    <div className="mt-2 border-t border-slate-100 pt-2">
       <button
         type="button"
         onClick={handleSend}
         disabled={status === 'sending'}
-        className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
       >
-        {status === 'sending' ? 'Enviando...' : 'Enviar a Telegram'}
+        {status === 'sending' ? 'Enviando...' : 'Enviar reporte a Telegram'}
       </button>
-      {status === 'sent' && <p className="mt-1 text-sm text-green-700">Reporte enviado.</p>}
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {status === 'sent' && (
+        <p className="mt-1 text-sm text-emerald-700">Reporte enviado correctamente.</p>
+      )}
+      {error && (
+        <p className="mt-1 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
