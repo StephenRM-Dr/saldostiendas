@@ -10,7 +10,15 @@ function isKnownConcept(concept: string): boolean {
   return CONCEPTS.some((c) => c.label === concept);
 }
 
-export default function MovementRow({ movement, slug }: { movement: Movement; slug: string }) {
+export default function MovementRow({
+  movement,
+  slug,
+  readOnly,
+}: {
+  movement: Movement;
+  slug: string;
+  readOnly: boolean;
+}) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amountUsdInput, setAmountUsdInput] = useState(movement.amount_usd);
@@ -30,21 +38,23 @@ export default function MovementRow({ movement, slug }: { movement: Movement; sl
         <td className="p-2 text-right">{signedAmount(movement, 'amount_usd')}</td>
         <td className="p-2 text-right">{signedAmount(movement, 'amount_ves')}</td>
         <td className="p-2 text-right">
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              setAmountUsdInput(movement.amount_usd);
-              setAmountVesInput(movement.amount_ves);
-              setConceptInput(isKnownConcept(movement.concept) ? movement.concept : OTRO_LABEL);
-              setCustomConceptInput(isKnownConcept(movement.concept) ? '' : movement.concept);
-              setTypeInput(movement.type);
-              setEditing(true);
-            }}
-            className="text-blue-600"
-          >
-            Editar
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setAmountUsdInput(movement.amount_usd);
+                setAmountVesInput(movement.amount_ves);
+                setConceptInput(isKnownConcept(movement.concept) ? movement.concept : OTRO_LABEL);
+                setCustomConceptInput(isKnownConcept(movement.concept) ? '' : movement.concept);
+                setTypeInput(movement.type);
+                setEditing(true);
+              }}
+              className="text-blue-600"
+            >
+              Editar
+            </button>
+          )}
         </td>
       </tr>
     );

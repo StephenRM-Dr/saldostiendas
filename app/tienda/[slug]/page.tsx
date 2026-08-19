@@ -5,7 +5,7 @@ import { verifyStoreSession, storeSessionCookieName } from '@/lib/storeAuth';
 import { logoutAction } from './actions';
 import { getDayLedger } from '@/lib/movements';
 import { formatMoney } from '@/lib/money';
-import { todayISOCaracas } from '@/lib/date';
+import { todayISOCaracas, isDateClosed } from '@/lib/date';
 import MovementRow from './MovementRow';
 import DateNav from './DateNav';
 import MovementForm from './MovementForm';
@@ -32,6 +32,7 @@ export default async function StorePage({
   }
 
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayISOCaracas();
+  const closed = isDateClosed(date);
   const { movements, saldoInicial, saldoFinal } = await getDayLedger(store.id, date);
 
   return (
@@ -65,7 +66,7 @@ export default async function StorePage({
             <td className="p-2" />
           </tr>
           {movements.map((m) => (
-            <MovementRow key={m.id} movement={m} slug={store.slug} />
+            <MovementRow key={m.id} movement={m} slug={store.slug} readOnly={closed} />
           ))}
           <tr className="bg-yellow-300 font-semibold">
             <td className="p-2">Saldo al Final del día</td>
@@ -76,7 +77,14 @@ export default async function StorePage({
         </tbody>
       </table>
 
-      <MovementForm storeId={store.id} slug={store.slug} date={date} />
+      {closed ? (
+        <p className="mt-6 rounded-lg border p-4 text-sm text-gray-600">
+          Este día ya cerró y no se pueden agregar ni modificar movimientos. Ve al día de hoy para
+          registrar movimientos nuevos.
+        </p>
+      ) : (
+        <MovementForm storeId={store.id} slug={store.slug} date={date} />
+      )}
     </main>
   );
 }
