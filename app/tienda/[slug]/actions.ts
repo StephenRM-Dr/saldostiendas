@@ -64,8 +64,8 @@ export async function sendReportAction(formData: FormData) {
   }
 
   const ledger = await getDayLedger(store.id, date);
-  const caption = formatReportMessage(store.name, date, ledger);
-  const imageBuffer = await generateReportImageBuffer(store.name, date, ledger);
+  const caption = formatReportMessage(store.name, date, ledger, 'Reporte de Saldos');
+  const imageBuffer = await generateReportImageBuffer(store.name, date, ledger, 'Reporte de Saldos');
   await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption);
 }
 

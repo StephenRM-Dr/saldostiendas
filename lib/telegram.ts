@@ -26,14 +26,15 @@ function formatMovementLine(movement: Movement): string {
 export function formatReportMessage(
   storeName: string,
   date: string,
-  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance }
+  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
+  label: string = 'Cierre'
 ): string {
   const { movements, saldoInicial, saldoFinal } = ledger;
   const movementsBlock =
     movements.length === 0 ? 'Sin movimientos hoy.' : movements.map(formatMovementLine).join('\n');
 
   return [
-    `*${storeName}* — Cierre ${formatDateDMY(date)}`,
+    `*${storeName}* — ${label} ${formatDateDMY(date)}`,
     '',
     `Saldo inicial: $${formatMoney(saldoInicial.usdCents)} / Bs ${formatMoney(saldoInicial.vesCents)}`,
     '',
