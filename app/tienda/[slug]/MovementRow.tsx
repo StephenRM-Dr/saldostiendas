@@ -81,12 +81,12 @@ export default function MovementRow({
     formData.set('concept', concept);
     formData.set('type', typeInput);
 
-    try {
-      await updateMovementAction(formData);
-      setEditing(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar.');
+    const result = await updateMovementAction(formData);
+    if (!result.ok) {
+      setError(result.error);
+      return;
     }
+    setEditing(false);
   }
 
   async function handleDelete() {
@@ -94,10 +94,9 @@ export default function MovementRow({
     const formData = new FormData();
     formData.set('id', String(movement.id));
     formData.set('slug', slug);
-    try {
-      await deleteMovementAction(formData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar.');
+    const result = await deleteMovementAction(formData);
+    if (!result.ok) {
+      setError(result.error);
     }
   }
 
