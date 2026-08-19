@@ -89,6 +89,14 @@ export async function createMovement(input: {
   );
 }
 
+export async function getMovementDate(id: number): Promise<string | null> {
+  const rows = (await sql.query(
+    `select to_char(date, 'YYYY-MM-DD') as date from movements where id = $1`,
+    [id]
+  )) as { date: string }[];
+  return rows[0]?.date ?? null;
+}
+
 export async function updateMovement(
   id: number,
   input: {

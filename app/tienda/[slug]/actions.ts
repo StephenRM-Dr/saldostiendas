@@ -3,7 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { createMovement, updateMovement, deleteMovement, getDayLedger } from '@/lib/movements';
+import {
+  createMovement,
+  updateMovement,
+  deleteMovement,
+  getDayLedger,
+  getMovementDate,
+} from '@/lib/movements';
 import { getStoreBySlug } from '@/lib/stores';
 import { formatReportMessage, sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
@@ -45,7 +51,8 @@ export async function updateMovementAction(formData: FormData) {
   const slug = String(formData.get('slug'));
   const { concept, type, amountUsd, amountVes, date } = parseAndValidate(formData);
 
-  if (isDateClosed(date)) {
+  const persistedDate = await getMovementDate(id);
+  if (persistedDate === null || isDateClosed(persistedDate)) {
     throw new Error('No se pueden modificar movimientos de un día ya cerrado.');
   }
 
@@ -56,9 +63,9 @@ export async function updateMovementAction(formData: FormData) {
 export async function deleteMovementAction(formData: FormData) {
   const id = Number(formData.get('id'));
   const slug = String(formData.get('slug'));
-  const date = String(formData.get('date'));
 
-  if (isDateClosed(date)) {
+  const persistedDate = await getMovementDate(id);
+  if (persistedDate === null || isDateClosed(persistedDate)) {
     throw new Error('No se pueden modificar movimientos de un día ya cerrado.');
   }
 
