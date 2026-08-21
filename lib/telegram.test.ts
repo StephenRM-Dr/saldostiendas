@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { formatReportMessage } from './telegram';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { formatReportMessage, sendTelegramPhoto } from './telegram';
 
 describe('formatReportMessage', () => {
   it('formats a day with movements in USD only', () => {
@@ -105,5 +105,34 @@ describe('formatReportMessage', () => {
         'Saldo final: $43.00 / Bs 1380.00',
       ].join('\n')
     );
+  });
+});
+
+describe('sendTelegramPhoto', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it('includes message_thread_id in the request when provided', async () => {
+    vi.stubEnv('TELEGRAM_BOT_TOKEN', 'test-token');
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await sendTelegramPhoto('-1004298757566', Buffer.from('img'), 'caption', 11);
+
+    const formData = fetchMock.mock.calls[0][1].body as FormData;
+    expect(formData.get('message_thread_id')).toBe('11');
+  });
+
+  it('omits message_thread_id when not provided', async () => {
+    vi.stubEnv('TELEGRAM_BOT_TOKEN', 'test-token');
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await sendTelegramPhoto('-1004298757566', Buffer.from('img'), 'caption');
+
+    const formData = fetchMock.mock.calls[0][1].body as FormData;
+    expect(formData.get('message_thread_id')).toBeNull();
   });
 });

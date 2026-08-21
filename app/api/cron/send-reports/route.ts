@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       const ledger = await getDayLedger(store.id, date);
       const caption = formatReportMessage(store.name, date, ledger);
       const imageBuffer = await generateReportImageBuffer(store.name, date, ledger);
-      await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption);
+      await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption, store.telegram_thread_id);
       results.push({ slug: store.slug, status: 'sent' });
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);

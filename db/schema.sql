@@ -18,6 +18,7 @@ create table if not exists movements (
 create index if not exists movements_store_date_idx on movements (store_id, date);
 
 alter table stores add column if not exists telegram_chat_id text;
+alter table stores add column if not exists telegram_thread_id integer;
 alter table stores add column if not exists pin text;
 alter table stores add column if not exists pin_failed_attempts integer not null default 0;
 alter table stores add column if not exists pin_locked_until text;
