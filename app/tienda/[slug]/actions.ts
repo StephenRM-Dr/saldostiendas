@@ -11,7 +11,7 @@ import {
   getMovementDate,
 } from '@/lib/movements';
 import { getStoreBySlug } from '@/lib/stores';
-import { formatReportMessage, sendTelegramPhoto } from '@/lib/telegram';
+import { sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
 import { storeSessionCookieName } from '@/lib/storeAuth';
 import { isDateClosed, isValidISODate, todayISOCaracas } from '@/lib/date';
@@ -155,7 +155,6 @@ export async function sendReportAction(formData: FormData) {
 
   const showCop = store.slug === 'san-cristobal';
   const ledger = await getDayLedger(store.id, date);
-  const caption = formatReportMessage(store.name, date, ledger, 'Reporte de Saldos', showCop);
   const imageBuffer = await generateReportImageBuffer(
     store.name,
     date,
@@ -163,7 +162,7 @@ export async function sendReportAction(formData: FormData) {
     'Reporte de Saldos',
     showCop
   );
-  await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption, store.telegram_thread_id);
+  await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, store.telegram_thread_id);
 }
 
 export async function importStoreMovementsAction(formData: FormData): Promise<ImportActionResult> {

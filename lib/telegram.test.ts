@@ -185,7 +185,7 @@ describe('sendTelegramPhoto', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    await sendTelegramPhoto('-1004298757566', Buffer.from('img'), 'caption', 11);
+    await sendTelegramPhoto('-1004298757566', Buffer.from('img'), 11);
 
     const formData = fetchMock.mock.calls[0][1].body as FormData;
     expect(formData.get('message_thread_id')).toBe('11');
@@ -196,9 +196,21 @@ describe('sendTelegramPhoto', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    await sendTelegramPhoto('-1004298757566', Buffer.from('img'), 'caption');
+    await sendTelegramPhoto('-1004298757566', Buffer.from('img'));
 
     const formData = fetchMock.mock.calls[0][1].body as FormData;
     expect(formData.get('message_thread_id')).toBeNull();
+  });
+
+  it('does not include a caption, sending only the image', async () => {
+    vi.stubEnv('TELEGRAM_BOT_TOKEN', 'test-token');
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await sendTelegramPhoto('-1004298757566', Buffer.from('img'), 11);
+
+    const formData = fetchMock.mock.calls[0][1].body as FormData;
+    expect(formData.get('caption')).toBeNull();
+    expect(formData.get('parse_mode')).toBeNull();
   });
 });

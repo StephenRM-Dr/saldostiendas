@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listStores } from '@/lib/stores';
 import { getDayLedger } from '@/lib/movements';
-import { formatReportMessage, sendTelegramPhoto } from '@/lib/telegram';
+import { sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
 import { todayISOCaracas } from '@/lib/date';
 
@@ -32,9 +32,8 @@ export async function GET(request: NextRequest) {
     try {
       const showCop = store.slug === 'san-cristobal';
       const ledger = await getDayLedger(store.id, date);
-      const caption = formatReportMessage(store.name, date, ledger, undefined, showCop);
       const imageBuffer = await generateReportImageBuffer(store.name, date, ledger, undefined, showCop);
-      await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption, store.telegram_thread_id);
+      await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, store.telegram_thread_id);
       results.push({ slug: store.slug, status: 'sent' });
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);

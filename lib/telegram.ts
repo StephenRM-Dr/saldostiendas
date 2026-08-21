@@ -56,7 +56,6 @@ export function formatReportMessage(
 export async function sendTelegramPhoto(
   chatId: string,
   imageBuffer: Buffer,
-  caption: string,
   messageThreadId?: number | null
 ): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -66,8 +65,6 @@ export async function sendTelegramPhoto(
 
   const formData = new FormData();
   formData.set('chat_id', chatId);
-  formData.set('caption', caption);
-  formData.set('parse_mode', 'Markdown');
   if (messageThreadId != null) {
     formData.set('message_thread_id', String(messageThreadId));
   }
