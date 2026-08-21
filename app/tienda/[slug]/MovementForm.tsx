@@ -18,6 +18,7 @@ export default function MovementForm({
   const [type, setType] = useState<'ingreso' | 'gasto'>(CONCEPTS[0].type);
   const [amountUsdInput, setAmountUsdInput] = useState('0');
   const [amountVesInput, setAmountVesInput] = useState('0');
+  const [observacionInput, setObservacionInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,11 +42,16 @@ export default function MovementForm({
       setError('Debe indicar un monto en USD o en Bs mayor a cero.');
       return;
     }
+    if (!observacionInput.trim()) {
+      setError('La observación es obligatoria.');
+      return;
+    }
 
     formData.set('concept', finalConcept);
     formData.set('type', type);
     formData.set('storeId', String(storeId));
     formData.set('slug', slug);
+    formData.set('observacion', observacionInput.trim());
 
     setSubmitting(true);
     const result = await addMovementAction(formData);
@@ -59,6 +65,7 @@ export default function MovementForm({
     setCustomConcept('');
     setAmountUsdInput('0');
     setAmountVesInput('0');
+    setObservacionInput('');
   }
 
   return (
@@ -166,6 +173,20 @@ export default function MovementForm({
             />
           </div>
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="observacion" className="mb-1 block text-sm text-slate-600">
+          Observación
+        </label>
+        <textarea
+          id="observacion"
+          value={observacionInput}
+          onChange={(e) => setObservacionInput(e.target.value)}
+          placeholder="Explica el motivo de este ingreso o gasto"
+          rows={2}
+          className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
+        />
       </div>
 
       {error && (

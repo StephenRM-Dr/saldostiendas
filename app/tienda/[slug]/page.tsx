@@ -10,6 +10,7 @@ import MovementRow from './MovementRow';
 import DateNav from './DateNav';
 import MovementForm from './MovementForm';
 import TelegramButton from './TelegramButton';
+import ImportForm from './ImportForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,8 @@ export default async function StorePage({
       ) : (
         <MovementForm storeId={store.id} slug={store.slug} date={date} />
       )}
+
+      {date === today && <ImportForm storeId={store.id} slug={store.slug} />}
     </main>
   );
 }

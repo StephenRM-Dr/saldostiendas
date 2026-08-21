@@ -13,6 +13,7 @@ describe('formatReportMessage', () => {
           type: 'ingreso',
           amount_usd: '100.00',
           amount_ves: '0',
+          observacion: 'Cierre de caja del turno',
         },
         {
           id: 2,
@@ -22,6 +23,7 @@ describe('formatReportMessage', () => {
           type: 'gasto',
           amount_usd: '50.00',
           amount_ves: '0',
+          observacion: 'Pago a proveedor',
         },
       ],
       saldoInicial: { usdCents: 15000, vesCents: 50000 },
@@ -88,6 +90,7 @@ describe('formatReportMessage', () => {
           type: 'ingreso',
           amount_usd: '43.00',
           amount_ves: '1380.00',
+          observacion: 'Cierre de caja del turno',
         },
       ],
       saldoInicial: { usdCents: 0, vesCents: 0 },

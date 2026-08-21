@@ -12,6 +12,7 @@ create table if not exists movements (
   type text not null check (type in ('ingreso', 'gasto')),
   amount_usd numeric(12,2) not null default 0,
   amount_ves numeric(12,2) not null default 0,
+  observacion text not null,
   created_at timestamptz not null default now()
 );
 
@@ -19,6 +20,7 @@ create index if not exists movements_store_date_idx on movements (store_id, date
 
 alter table stores add column if not exists telegram_chat_id text;
 alter table stores add column if not exists telegram_thread_id integer;
+alter table movements add column if not exists observacion text not null default '';
 alter table stores add column if not exists pin text;
 alter table stores add column if not exists pin_failed_attempts integer not null default 0;
 alter table stores add column if not exists pin_locked_until text;

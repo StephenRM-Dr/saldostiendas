@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
     { header: 'Tipo', key: 'tipo', width: 12 },
     { header: 'Monto USD', key: 'montoUsd', width: 14 },
     { header: 'Monto VES', key: 'montoVes', width: 14 },
+    { header: 'Observación', key: 'observacion', width: 30 },
   ];
   sheet.getRow(1).font = { bold: true };
 

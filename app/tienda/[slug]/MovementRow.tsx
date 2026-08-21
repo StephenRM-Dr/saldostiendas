@@ -31,6 +31,7 @@ export default function MovementRow({
     isKnownConcept(movement.concept) ? '' : movement.concept
   );
   const [typeInput, setTypeInput] = useState<'ingreso' | 'gasto'>(movement.type);
+  const [observacionInput, setObservacionInput] = useState(movement.observacion);
 
   if (!editing) {
     const amountColor = movement.type === 'gasto' ? 'text-rose-600' : 'text-emerald-600';
@@ -47,6 +48,7 @@ export default function MovementRow({
           >
             {movement.type === 'gasto' ? 'Gasto' : 'Ingreso'}
           </span>
+          <p className="mt-0.5 text-xs text-slate-500">{movement.observacion}</p>
         </td>
         <td className={`p-3 text-right font-medium ${amountColor}`}>
           {signedAmount(movement, 'amount_usd')}
@@ -65,6 +67,7 @@ export default function MovementRow({
                 setConceptInput(isKnownConcept(movement.concept) ? movement.concept : OTRO_LABEL);
                 setCustomConceptInput(isKnownConcept(movement.concept) ? '' : movement.concept);
                 setTypeInput(movement.type);
+                setObservacionInput(movement.observacion);
                 setEditing(true);
               }}
               className="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
@@ -91,12 +94,17 @@ export default function MovementRow({
       setError('Debe indicar un monto en USD o en Bs mayor a cero.');
       return;
     }
+    if (!observacionInput.trim()) {
+      setError('La observación es obligatoria.');
+      return;
+    }
 
     formData.set('id', String(movement.id));
     formData.set('slug', slug);
     formData.set('date', movement.date);
     formData.set('concept', concept);
     formData.set('type', typeInput);
+    formData.set('observacion', observacionInput.trim());
 
     setSaving(true);
     const result = await updateMovementAction(formData);
@@ -177,6 +185,14 @@ export default function MovementRow({
               onChange={(e) => setAmountVesInput(e.target.value)}
               placeholder="Monto Bs"
               className="rounded-md border border-slate-300 bg-white p-2 text-sm"
+            />
+            <textarea
+              name="observacion"
+              value={observacionInput}
+              onChange={(e) => setObservacionInput(e.target.value)}
+              placeholder="Observación"
+              rows={2}
+              className="col-span-2 rounded-md border border-slate-300 bg-white p-2 text-sm sm:col-span-4"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">

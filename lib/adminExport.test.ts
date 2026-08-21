@@ -12,6 +12,7 @@ const twoMovements = [
     type: 'ingreso' as const,
     amount_usd: '100.00',
     amount_ves: '0',
+    observacion: 'Cierre de caja del turno',
   },
   {
     id: 2,
@@ -21,6 +22,7 @@ const twoMovements = [
     type: 'gasto' as const,
     amount_usd: '30.00',
     amount_ves: '0',
+    observacion: 'Pago a proveedor',
   },
 ];
 
@@ -46,6 +48,7 @@ describe('buildStoreRows', () => {
         tipo: '',
         montoUsd: 50,
         montoVes: 0,
+        observacion: '',
       },
       {
         tienda: 'Barinas',
@@ -54,6 +57,7 @@ describe('buildStoreRows', () => {
         tipo: 'Ingreso',
         montoUsd: 100,
         montoVes: 0,
+        observacion: 'Cierre de caja del turno',
       },
       {
         tienda: 'Barinas',
@@ -62,6 +66,7 @@ describe('buildStoreRows', () => {
         tipo: 'Gasto',
         montoUsd: 30,
         montoVes: 0,
+        observacion: 'Pago a proveedor',
       },
       {
         tienda: 'Barinas',
@@ -70,6 +75,7 @@ describe('buildStoreRows', () => {
         tipo: '',
         montoUsd: 120,
         montoVes: 0,
+        observacion: '',
       },
     ]);
   });
