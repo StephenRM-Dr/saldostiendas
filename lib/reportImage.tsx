@@ -5,6 +5,7 @@ import type { Movement } from './movements';
 import type { Balance } from './balance';
 
 const IMAGE_WIDTH = 800;
+const IMAGE_WIDTH_WITH_COP = 1000;
 const TITLE_HEIGHT = 90;
 const ROW_HEIGHT = 45;
 const VERTICAL_PADDING = 40;
@@ -27,12 +28,14 @@ function Row({
   concept,
   usd,
   ves,
+  cop,
   background,
   bold,
 }: {
   concept: string;
   usd: string;
   ves: string;
+  cop?: string;
   background: string;
   bold?: boolean;
 }) {
@@ -73,6 +76,19 @@ function Row({
       >
         {ves}
       </div>
+      {cop !== undefined && (
+        <div
+          style={{
+            display: 'flex',
+            width: '200px',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            padding: '0 12px',
+          }}
+        >
+          {cop}
+        </div>
+      )}
     </div>
   );
 }
@@ -81,16 +97,18 @@ export function buildReportImageElement(
   storeName: string,
   date: string,
   ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
-  label: string = 'Cierre'
+  label: string = 'Cierre',
+  showCop: boolean = false
 ) {
   const { movements, saldoInicial, saldoFinal } = ledger;
+  const cop = (cents: number) => (showCop ? formatMoney(cents) : undefined);
 
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: `${IMAGE_WIDTH}px`,
+        width: `${showCop ? IMAGE_WIDTH_WITH_COP : IMAGE_WIDTH}px`,
         backgroundColor: WHITE,
         fontFamily: 'sans-serif',
         color: '#111827',
@@ -108,16 +126,24 @@ export function buildReportImageElement(
       >
         {`${storeName} — ${label} ${formatDateDMY(date)}`}
       </div>
-      <Row concept="Concepto" usd="Dólares" ves="Bolívares" background={YELLOW} bold />
+      <Row
+        concept="Concepto"
+        usd="Dólares"
+        ves="Bolívares"
+        cop={showCop ? 'Pesos COP' : undefined}
+        background={YELLOW}
+        bold
+      />
       <Row
         concept="Saldo al inicio del día"
         usd={formatMoney(saldoInicial.usdCents)}
         ves={formatMoney(saldoInicial.vesCents)}
+        cop={cop(saldoInicial.copCents)}
         background={YELLOW_LIGHT}
         bold
       />
       {movements.length === 0 ? (
-        <Row concept="Sin movimientos hoy." usd="" ves="" background={WHITE} />
+        <Row concept="Sin movimientos hoy." usd="" ves="" cop={showCop ? '' : undefined} background={WHITE} />
       ) : (
         movements.map((m) => (
           <Row
@@ -125,6 +151,7 @@ export function buildReportImageElement(
             concept={m.concept}
             usd={signedAmount(m, 'amount_usd')}
             ves={signedAmount(m, 'amount_ves')}
+            cop={showCop ? signedAmount(m, 'amount_cop') : undefined}
             background={WHITE}
           />
         ))
@@ -133,6 +160,7 @@ export function buildReportImageElement(
         concept="Saldo al Final del día"
         usd={formatMoney(saldoFinal.usdCents)}
         ves={formatMoney(saldoFinal.vesCents)}
+        cop={cop(saldoFinal.copCents)}
         background={YELLOW}
         bold
       />
@@ -144,13 +172,14 @@ export async function generateReportImageBuffer(
   storeName: string,
   date: string,
   ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
-  label: string = 'Cierre'
+  label: string = 'Cierre',
+  showCop: boolean = false
 ): Promise<Buffer> {
   const height = calculateImageHeight(ledger.movements.length);
-  const imageResponse = new ImageResponse(buildReportImageElement(storeName, date, ledger, label), {
-    width: IMAGE_WIDTH,
-    height,
-  });
+  const imageResponse = new ImageResponse(
+    buildReportImageElement(storeName, date, ledger, label, showCop),
+    { width: showCop ? IMAGE_WIDTH_WITH_COP : IMAGE_WIDTH, height }
+  );
   const arrayBuffer = await imageResponse.arrayBuffer();
   return Buffer.from(arrayBuffer);
 }

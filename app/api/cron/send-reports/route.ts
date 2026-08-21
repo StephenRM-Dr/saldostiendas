@@ -30,9 +30,10 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+      const showCop = store.slug === 'san-cristobal';
       const ledger = await getDayLedger(store.id, date);
-      const caption = formatReportMessage(store.name, date, ledger);
-      const imageBuffer = await generateReportImageBuffer(store.name, date, ledger);
+      const caption = formatReportMessage(store.name, date, ledger, undefined, showCop);
+      const imageBuffer = await generateReportImageBuffer(store.name, date, ledger, undefined, showCop);
       await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption, store.telegram_thread_id);
       results.push({ slug: store.slug, status: 'sent' });
     } catch (err) {

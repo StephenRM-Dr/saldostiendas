@@ -12,6 +12,7 @@ const twoMovements = [
     type: 'ingreso' as const,
     amount_usd: '100.00',
     amount_ves: '0',
+    amount_cop: '0',
     observacion: 'Cierre de caja del turno',
   },
   {
@@ -22,6 +23,7 @@ const twoMovements = [
     type: 'gasto' as const,
     amount_usd: '30.00',
     amount_ves: '0',
+    amount_cop: '0',
     observacion: 'Pago a proveedor',
   },
 ];
@@ -34,8 +36,8 @@ describe('buildStoreRows', () => {
       '2026-08-31',
       {
         movements: twoMovements,
-        saldoInicial: { usdCents: 5000, vesCents: 0 },
-        saldoFinal: { usdCents: 12000, vesCents: 0 },
+        saldoInicial: { usdCents: 5000, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 12000, vesCents: 0, copCents: 0 },
       },
       allRows
     );
@@ -48,6 +50,7 @@ describe('buildStoreRows', () => {
         tipo: '',
         montoUsd: 50,
         montoVes: 0,
+        montoCop: 0,
         observacion: '',
       },
       {
@@ -57,6 +60,7 @@ describe('buildStoreRows', () => {
         tipo: 'Ingreso',
         montoUsd: 100,
         montoVes: 0,
+        montoCop: 0,
         observacion: 'Cierre de caja del turno',
       },
       {
@@ -66,6 +70,7 @@ describe('buildStoreRows', () => {
         tipo: 'Gasto',
         montoUsd: 30,
         montoVes: 0,
+        montoCop: 0,
         observacion: 'Pago a proveedor',
       },
       {
@@ -75,6 +80,7 @@ describe('buildStoreRows', () => {
         tipo: '',
         montoUsd: 120,
         montoVes: 0,
+        montoCop: 0,
         observacion: '',
       },
     ]);
@@ -87,8 +93,8 @@ describe('buildStoreRows', () => {
       '2026-08-31',
       {
         movements: [],
-        saldoInicial: { usdCents: 5000, vesCents: 0 },
-        saldoFinal: { usdCents: 5000, vesCents: 0 },
+        saldoInicial: { usdCents: 5000, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 5000, vesCents: 0, copCents: 0 },
       },
       allRows
     );
@@ -103,7 +109,11 @@ describe('buildStoreRows', () => {
       'Barinas',
       '2026-08-01',
       '2026-08-31',
-      { movements: twoMovements, saldoInicial: { usdCents: 5000, vesCents: 0 }, saldoFinal: { usdCents: 12000, vesCents: 0 } },
+      {
+        movements: twoMovements,
+        saldoInicial: { usdCents: 5000, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 12000, vesCents: 0, copCents: 0 },
+      },
       { ...allRows, saldoInicial: false }
     );
 
@@ -116,7 +126,11 @@ describe('buildStoreRows', () => {
       'Barinas',
       '2026-08-01',
       '2026-08-31',
-      { movements: twoMovements, saldoInicial: { usdCents: 5000, vesCents: 0 }, saldoFinal: { usdCents: 12000, vesCents: 0 } },
+      {
+        movements: twoMovements,
+        saldoInicial: { usdCents: 5000, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 12000, vesCents: 0, copCents: 0 },
+      },
       { ...allRows, saldoFinal: false }
     );
 
@@ -129,7 +143,11 @@ describe('buildStoreRows', () => {
       'Barinas',
       '2026-08-01',
       '2026-08-31',
-      { movements: twoMovements, saldoInicial: { usdCents: 5000, vesCents: 0 }, saldoFinal: { usdCents: 12000, vesCents: 0 } },
+      {
+        movements: twoMovements,
+        saldoInicial: { usdCents: 5000, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 12000, vesCents: 0, copCents: 0 },
+      },
       { ...allRows, ingreso: false }
     );
 
@@ -142,7 +160,11 @@ describe('buildStoreRows', () => {
       'Barinas',
       '2026-08-01',
       '2026-08-31',
-      { movements: twoMovements, saldoInicial: { usdCents: 5000, vesCents: 0 }, saldoFinal: { usdCents: 12000, vesCents: 0 } },
+      {
+        movements: twoMovements,
+        saldoInicial: { usdCents: 5000, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 12000, vesCents: 0, copCents: 0 },
+      },
       { ...allRows, egreso: false }
     );
 
@@ -155,11 +177,54 @@ describe('buildStoreRows', () => {
       'Barinas',
       '2026-08-01',
       '2026-08-31',
-      { movements: twoMovements, saldoInicial: { usdCents: 5000, vesCents: 0 }, saldoFinal: { usdCents: 12000, vesCents: 0 } },
+      {
+        movements: twoMovements,
+        saldoInicial: { usdCents: 5000, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 12000, vesCents: 0, copCents: 0 },
+      },
       { saldoInicial: false, ingreso: true, egreso: true, saldoFinal: false }
     );
 
     expect(rows).toHaveLength(2);
     expect(rows.every((r) => r.concepto !== 'Saldo inicial del rango' && r.concepto !== 'Saldo final del rango')).toBe(true);
+  });
+
+  it('includes montoCop for a store using Colombian pesos', () => {
+    const rows = buildStoreRows(
+      'San Cristóbal',
+      '2026-08-15',
+      '2026-08-15',
+      {
+        movements: [
+          {
+            id: 3,
+            store_id: 1,
+            date: '2026-08-15',
+            concept: 'Ingreso Ventas Diarias',
+            type: 'ingreso' as const,
+            amount_usd: '0',
+            amount_ves: '0',
+            amount_cop: '50000.00',
+            observacion: 'Venta en pesos colombianos',
+          },
+        ],
+        saldoInicial: { usdCents: 0, vesCents: 0, copCents: 0 },
+        saldoFinal: { usdCents: 0, vesCents: 0, copCents: 5000000 },
+      },
+      { saldoInicial: false, ingreso: true, egreso: true, saldoFinal: false }
+    );
+
+    expect(rows).toEqual([
+      {
+        tienda: 'San Cristóbal',
+        fecha: '2026-08-15',
+        concepto: 'Ingreso Ventas Diarias',
+        tipo: 'Ingreso',
+        montoUsd: 0,
+        montoVes: 0,
+        montoCop: 50000,
+        observacion: 'Venta en pesos colombianos',
+      },
+    ]);
   });
 });

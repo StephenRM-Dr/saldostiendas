@@ -9,6 +9,7 @@ export interface ParsedImportRow {
   type: 'ingreso' | 'gasto';
   amountUsd: number;
   amountVes: number;
+  amountCop: number;
   observacion: string;
 }
 
@@ -70,6 +71,8 @@ function parseRow(
   const typeRaw = cellToString(row.getCell(columnOf['tipo']).value).toLowerCase();
   const amountUsd = cellToNumber(row.getCell(columnOf['monto usd']).value);
   const amountVes = cellToNumber(row.getCell(columnOf['monto ves']).value);
+  const copCol = columnOf['monto cop'];
+  const amountCop = copCol ? cellToNumber(row.getCell(copCol).value) : 0;
   const observacion = cellToString(row.getCell(columnOf['observacion']).value);
 
   if (!isValidISODate(dateRaw)) {
@@ -81,11 +84,11 @@ function parseRow(
   if (typeRaw !== 'ingreso' && typeRaw !== 'gasto') {
     return { ok: false, reason: `Tipo desconocido ("${typeRaw}"), debe ser "Ingreso" o "Gasto".` };
   }
-  if (Number.isNaN(amountUsd) || Number.isNaN(amountVes)) {
-    return { ok: false, reason: 'El monto USD o VES no es un número válido.' };
+  if (Number.isNaN(amountUsd) || Number.isNaN(amountVes) || Number.isNaN(amountCop)) {
+    return { ok: false, reason: 'El monto USD, VES o COP no es un número válido.' };
   }
-  if (amountUsd <= 0 && amountVes <= 0) {
-    return { ok: false, reason: 'Debe indicar un monto en USD o en VES mayor a cero.' };
+  if (amountUsd <= 0 && amountVes <= 0 && amountCop <= 0) {
+    return { ok: false, reason: 'Debe indicar un monto en USD, VES o COP mayor a cero.' };
   }
   if (!observacion) {
     return { ok: false, reason: 'La observación está vacía.' };
@@ -93,7 +96,16 @@ function parseRow(
 
   return {
     ok: true,
-    data: { storeName, date: dateRaw, concept, type: typeRaw, amountUsd, amountVes, observacion },
+    data: {
+      storeName,
+      date: dateRaw,
+      concept,
+      type: typeRaw,
+      amountUsd,
+      amountVes,
+      amountCop,
+      observacion,
+    },
   };
 }
 

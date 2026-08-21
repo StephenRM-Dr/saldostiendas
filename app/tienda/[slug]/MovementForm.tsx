@@ -8,16 +8,19 @@ export default function MovementForm({
   storeId,
   slug,
   date,
+  showCop = false,
 }: {
   storeId: number;
   slug: string;
   date: string;
+  showCop?: boolean;
 }) {
   const [conceptLabel, setConceptLabel] = useState(CONCEPTS[0].label);
   const [customConcept, setCustomConcept] = useState('');
   const [type, setType] = useState<'ingreso' | 'gasto'>(CONCEPTS[0].type);
   const [amountUsdInput, setAmountUsdInput] = useState('0');
   const [amountVesInput, setAmountVesInput] = useState('0');
+  const [amountCopInput, setAmountCopInput] = useState('0');
   const [observacionInput, setObservacionInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -33,13 +36,14 @@ export default function MovementForm({
     const finalConcept = conceptLabel === OTRO_LABEL ? customConcept.trim() : conceptLabel;
     const amountUsd = Number(amountUsdInput || 0);
     const amountVes = Number(amountVesInput || 0);
+    const amountCop = showCop ? Number(amountCopInput || 0) : 0;
 
     if (!finalConcept) {
       setError('Indica el concepto.');
       return;
     }
-    if (amountUsd <= 0 && amountVes <= 0) {
-      setError('Debe indicar un monto en USD o en Bs mayor a cero.');
+    if (amountUsd <= 0 && amountVes <= 0 && amountCop <= 0) {
+      setError(`Debe indicar un monto en ${showCop ? 'USD, Bs o COP' : 'USD o Bs'} mayor a cero.`);
       return;
     }
     if (!observacionInput.trim()) {
@@ -65,6 +69,7 @@ export default function MovementForm({
     setCustomConcept('');
     setAmountUsdInput('0');
     setAmountVesInput('0');
+    setAmountCopInput('0');
     setObservacionInput('');
   }
 
@@ -136,8 +141,8 @@ export default function MovementForm({
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex-1">
+      <div className="flex flex-wrap gap-3">
+        <div className="min-w-[110px] flex-1">
           <label htmlFor="amountUsd" className="mb-1 block text-sm text-slate-600">
             Monto USD
           </label>
@@ -155,7 +160,7 @@ export default function MovementForm({
             />
           </div>
         </div>
-        <div className="flex-1">
+        <div className="min-w-[110px] flex-1">
           <label htmlFor="amountVes" className="mb-1 block text-sm text-slate-600">
             Monto Bs
           </label>
@@ -173,6 +178,26 @@ export default function MovementForm({
             />
           </div>
         </div>
+        {showCop && (
+          <div className="min-w-[110px] flex-1">
+            <label htmlFor="amountCop" className="mb-1 block text-sm text-slate-600">
+              Monto COP
+            </label>
+            <div className="flex items-center rounded-lg border border-slate-300 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-200">
+              <span className="pl-2.5 text-sm text-slate-400">COP</span>
+              <input
+                id="amountCop"
+                type="number"
+                step="0.01"
+                min="0"
+                name="amountCop"
+                value={amountCopInput}
+                onChange={(e) => setAmountCopInput(e.target.value)}
+                className="w-full rounded-lg p-2.5 text-sm outline-none"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div>

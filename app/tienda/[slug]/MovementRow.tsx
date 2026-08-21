@@ -14,16 +14,19 @@ export default function MovementRow({
   movement,
   slug,
   readOnly,
+  showCop = false,
 }: {
   movement: Movement;
   slug: string;
   readOnly: boolean;
+  showCop?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [amountUsdInput, setAmountUsdInput] = useState(movement.amount_usd);
   const [amountVesInput, setAmountVesInput] = useState(movement.amount_ves);
+  const [amountCopInput, setAmountCopInput] = useState(movement.amount_cop);
   const [conceptInput, setConceptInput] = useState(
     isKnownConcept(movement.concept) ? movement.concept : OTRO_LABEL
   );
@@ -56,6 +59,11 @@ export default function MovementRow({
         <td className={`p-3 text-right font-medium ${amountColor}`}>
           {signedAmount(movement, 'amount_ves')}
         </td>
+        {showCop && (
+          <td className={`p-3 text-right font-medium ${amountColor}`}>
+            {signedAmount(movement, 'amount_cop')}
+          </td>
+        )}
         <td className="p-3 text-right">
           {!readOnly && (
             <button
@@ -64,6 +72,7 @@ export default function MovementRow({
                 setError(null);
                 setAmountUsdInput(movement.amount_usd);
                 setAmountVesInput(movement.amount_ves);
+                setAmountCopInput(movement.amount_cop);
                 setConceptInput(isKnownConcept(movement.concept) ? movement.concept : OTRO_LABEL);
                 setCustomConceptInput(isKnownConcept(movement.concept) ? '' : movement.concept);
                 setTypeInput(movement.type);
@@ -85,13 +94,14 @@ export default function MovementRow({
     const concept = conceptInput === OTRO_LABEL ? customConceptInput.trim() : conceptInput;
     const amountUsd = Number(amountUsdInput || 0);
     const amountVes = Number(amountVesInput || 0);
+    const amountCop = showCop ? Number(amountCopInput || 0) : 0;
 
     if (!concept) {
       setError('Indica el concepto.');
       return;
     }
-    if (amountUsd <= 0 && amountVes <= 0) {
-      setError('Debe indicar un monto en USD o en Bs mayor a cero.');
+    if (amountUsd <= 0 && amountVes <= 0 && amountCop <= 0) {
+      setError(`Debe indicar un monto en ${showCop ? 'USD, Bs o COP' : 'USD o Bs'} mayor a cero.`);
       return;
     }
     if (!observacionInput.trim()) {
@@ -131,7 +141,7 @@ export default function MovementRow({
 
   return (
     <tr className="border-b border-slate-100 bg-slate-50">
-      <td colSpan={4} className="p-3">
+      <td colSpan={showCop ? 5 : 4} className="p-3">
         <form action={handleUpdate} className="space-y-2">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <select
@@ -186,6 +196,18 @@ export default function MovementRow({
               placeholder="Monto Bs"
               className="rounded-md border border-slate-300 bg-white p-2 text-sm"
             />
+            {showCop && (
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="amountCop"
+                value={amountCopInput}
+                onChange={(e) => setAmountCopInput(e.target.value)}
+                placeholder="Monto COP"
+                className="rounded-md border border-slate-300 bg-white p-2 text-sm"
+              />
+            )}
             <textarea
               name="observacion"
               value={observacionInput}

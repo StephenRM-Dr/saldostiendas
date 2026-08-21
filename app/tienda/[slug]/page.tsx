@@ -35,6 +35,8 @@ export default async function StorePage({
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayISOCaracas();
   const today = todayISOCaracas();
   const closed = isDateClosed(date);
+  const showCop = store.slug === 'san-cristobal';
+  const colSpan = showCop ? 5 : 4;
   const { movements, saldoInicial, saldoFinal } = await getDayLedger(store.id, date);
 
   return (
@@ -64,6 +66,7 @@ export default async function StorePage({
               <th className="p-3 font-medium">Concepto</th>
               <th className="p-3 text-right font-medium">Dólares</th>
               <th className="p-3 text-right font-medium">Bolívares</th>
+              {showCop && <th className="p-3 text-right font-medium">Pesos COP</th>}
               <th className="p-3" />
             </tr>
           </thead>
@@ -72,14 +75,15 @@ export default async function StorePage({
               <td className="p-3">Saldo al inicio del día</td>
               <td className="p-3 text-right">{formatMoney(saldoInicial.usdCents)}</td>
               <td className="p-3 text-right">{formatMoney(saldoInicial.vesCents)}</td>
+              {showCop && <td className="p-3 text-right">{formatMoney(saldoInicial.copCents)}</td>}
               <td className="p-3" />
             </tr>
             {movements.map((m) => (
-              <MovementRow key={m.id} movement={m} slug={store.slug} readOnly={closed} />
+              <MovementRow key={m.id} movement={m} slug={store.slug} readOnly={closed} showCop={showCop} />
             ))}
             {movements.length === 0 && (
               <tr>
-                <td colSpan={4} className="p-4 text-center text-slate-400">
+                <td colSpan={colSpan} className="p-4 text-center text-slate-400">
                   Sin movimientos registrados este día.
                 </td>
               </tr>
@@ -88,6 +92,7 @@ export default async function StorePage({
               <td className="p-3">Saldo al Final del día</td>
               <td className="p-3 text-right">{formatMoney(saldoFinal.usdCents)}</td>
               <td className="p-3 text-right">{formatMoney(saldoFinal.vesCents)}</td>
+              {showCop && <td className="p-3 text-right">{formatMoney(saldoFinal.copCents)}</td>}
               <td className="p-3" />
             </tr>
           </tbody>
@@ -100,7 +105,7 @@ export default async function StorePage({
           registrar movimientos nuevos.
         </p>
       ) : (
-        <MovementForm storeId={store.id} slug={store.slug} date={date} />
+        <MovementForm storeId={store.id} slug={store.slug} date={date} showCop={showCop} />
       )}
 
       {date === today && <ImportForm storeId={store.id} slug={store.slug} />}

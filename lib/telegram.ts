@@ -13,13 +13,16 @@ function formatSignedAmount(cents: number, prefix: string): string {
   return `${sign}${prefix}${formatMoney(Math.abs(cents))}`;
 }
 
-function formatMovementLine(movement: Movement): string {
+function formatMovementLine(movement: Movement, showCop: boolean): string {
   const sign = movement.type === 'gasto' ? -1 : 1;
   const usdCents = sign * toCents(movement.amount_usd);
   const vesCents = sign * toCents(movement.amount_ves);
-  const amounts = [formatSignedAmount(usdCents, '$'), formatSignedAmount(vesCents, 'Bs')]
-    .filter((part) => part !== '')
-    .join('  ');
+  const parts = [formatSignedAmount(usdCents, '$'), formatSignedAmount(vesCents, 'Bs')];
+  if (showCop) {
+    const copCents = sign * toCents(movement.amount_cop);
+    parts.push(formatSignedAmount(copCents, 'COP'));
+  }
+  const amounts = parts.filter((part) => part !== '').join('  ');
   return `${movement.concept}  ${amounts}`;
 }
 
@@ -27,20 +30,26 @@ export function formatReportMessage(
   storeName: string,
   date: string,
   ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
-  label: string = 'Cierre'
+  label: string = 'Cierre',
+  showCop: boolean = false
 ): string {
   const { movements, saldoInicial, saldoFinal } = ledger;
   const movementsBlock =
-    movements.length === 0 ? 'Sin movimientos hoy.' : movements.map(formatMovementLine).join('\n');
+    movements.length === 0
+      ? 'Sin movimientos hoy.'
+      : movements.map((m) => formatMovementLine(m, showCop)).join('\n');
+
+  const copSuffixInicial = showCop ? ` / COP ${formatMoney(saldoInicial.copCents)}` : '';
+  const copSuffixFinal = showCop ? ` / COP ${formatMoney(saldoFinal.copCents)}` : '';
 
   return [
     `*${storeName}* — ${label} ${formatDateDMY(date)}`,
     '',
-    `Saldo inicial: $${formatMoney(saldoInicial.usdCents)} / Bs ${formatMoney(saldoInicial.vesCents)}`,
+    `Saldo inicial: $${formatMoney(saldoInicial.usdCents)} / Bs ${formatMoney(saldoInicial.vesCents)}${copSuffixInicial}`,
     '',
     movementsBlock,
     '',
-    `Saldo final: $${formatMoney(saldoFinal.usdCents)} / Bs ${formatMoney(saldoFinal.vesCents)}`,
+    `Saldo final: $${formatMoney(saldoFinal.usdCents)} / Bs ${formatMoney(saldoFinal.vesCents)}${copSuffixFinal}`,
   ].join('\n');
 }
 

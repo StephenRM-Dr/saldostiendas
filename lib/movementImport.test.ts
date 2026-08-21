@@ -34,6 +34,7 @@ describe('parseMovementWorkbook', () => {
         type: 'ingreso',
         amountUsd: 100,
         amountVes: 0,
+        amountCop: 0,
         observacion: 'Cierre de caja',
       },
       {
@@ -44,9 +45,47 @@ describe('parseMovementWorkbook', () => {
         type: 'gasto',
         amountUsd: 30,
         amountVes: 0,
+        amountCop: 0,
         observacion: 'Pago a proveedor',
       },
     ]);
+  });
+
+  it('parses an optional Monto COP column when present', async () => {
+    const headersWithCop = [...FULL_HEADERS, 'Monto COP'];
+    const buffer = await buildWorkbook(headersWithCop, [
+      ['San Cristóbal', '2026-08-15', 'Ingreso Ventas Diarias', 'Ingreso', 0, 0, 'Venta en COP', 50000],
+    ]);
+
+    const result = await parseMovementWorkbook(buffer);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.errors).toHaveLength(0);
+    expect(result.rows[0].amountCop).toBe(50000);
+  });
+
+  it('defaults amountCop to 0 when the Monto COP column is absent', async () => {
+    const buffer = await buildWorkbook(FULL_HEADERS, [
+      ['Barinas', '2026-08-15', 'Ingreso Ventas Diarias', 'Ingreso', 100, 0, 'Cierre de caja'],
+    ]);
+
+    const result = await parseMovementWorkbook(buffer);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.rows[0].amountCop).toBe(0);
+  });
+
+  it('accepts a row where only Monto COP is nonzero', async () => {
+    const headersWithCop = [...FULL_HEADERS, 'Monto COP'];
+    const buffer = await buildWorkbook(headersWithCop, [
+      ['San Cristóbal', '2026-08-15', 'Ingreso Ventas Diarias', 'Ingreso', 0, 0, 'Solo COP', 50000],
+    ]);
+
+    const result = await parseMovementWorkbook(buffer);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.errors).toHaveLength(0);
+    expect(result.rows).toHaveLength(1);
   });
 
   it('treats the Tienda column as optional and reports storeName null when absent', async () => {

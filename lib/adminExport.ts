@@ -8,6 +8,7 @@ export interface ExportRow {
   tipo: string;
   montoUsd: number;
   montoVes: number;
+  montoCop: number;
   observacion: string;
 }
 
@@ -35,6 +36,7 @@ export function buildStoreRows(
       tipo: '',
       montoUsd: ledger.saldoInicial.usdCents / 100,
       montoVes: ledger.saldoInicial.vesCents / 100,
+      montoCop: ledger.saldoInicial.copCents / 100,
       observacion: '',
     });
   }
@@ -50,6 +52,7 @@ export function buildStoreRows(
       tipo: movement.type === 'ingreso' ? 'Ingreso' : 'Gasto',
       montoUsd: Number(movement.amount_usd),
       montoVes: Number(movement.amount_ves),
+      montoCop: Number(movement.amount_cop),
       observacion: movement.observacion,
     });
   }
@@ -62,6 +65,7 @@ export function buildStoreRows(
       tipo: '',
       montoUsd: ledger.saldoFinal.usdCents / 100,
       montoVes: ledger.saldoFinal.vesCents / 100,
+      montoCop: ledger.saldoFinal.copCents / 100,
       observacion: '',
     });
   }

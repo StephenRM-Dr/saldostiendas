@@ -9,12 +9,13 @@ export interface Movement {
   type: 'ingreso' | 'gasto';
   amount_usd: string;
   amount_ves: string;
+  amount_cop: string;
   observacion: string;
 }
 
 export async function getMovementsBefore(storeId: number, date: string): Promise<Movement[]> {
   return (await sql.query(
-    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves, observacion
+    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves, amount_cop, observacion
      from movements where store_id = $1 and date < $2 order by date, created_at`,
     [storeId, date]
   )) as Movement[];
@@ -22,7 +23,7 @@ export async function getMovementsBefore(storeId: number, date: string): Promise
 
 export async function getMovementsOnDate(storeId: number, date: string): Promise<Movement[]> {
   return (await sql.query(
-    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves, observacion
+    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves, amount_cop, observacion
      from movements where store_id = $1 and date = $2 order by created_at`,
     [storeId, date]
   )) as Movement[];
@@ -34,7 +35,7 @@ export async function getMovementsInRange(
   to: string
 ): Promise<Movement[]> {
   return (await sql.query(
-    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves, observacion
+    `select id, store_id, to_char(date, 'YYYY-MM-DD') as date, concept, type, amount_usd, amount_ves, amount_cop, observacion
      from movements where store_id = $1 and date >= $2 and date <= $3 order by date, created_at`,
     [storeId, from, to]
   )) as Movement[];
@@ -54,6 +55,7 @@ export async function getRangeLedger(
   const saldoFinal: Balance = {
     usdCents: saldoInicial.usdCents + rangeChange.usdCents,
     vesCents: saldoInicial.vesCents + rangeChange.vesCents,
+    copCents: saldoInicial.copCents + rangeChange.copCents,
   };
   return { movements: inRange, saldoInicial, saldoFinal };
 }
@@ -71,6 +73,7 @@ export async function getDayLedger(
   const saldoFinal: Balance = {
     usdCents: saldoInicial.usdCents + dayChange.usdCents,
     vesCents: saldoInicial.vesCents + dayChange.vesCents,
+    copCents: saldoInicial.copCents + dayChange.copCents,
   };
   return { movements: onDate, saldoInicial, saldoFinal };
 }
@@ -82,11 +85,12 @@ export async function createMovement(input: {
   type: 'ingreso' | 'gasto';
   amountUsd: number;
   amountVes: number;
+  amountCop: number;
   observacion: string;
 }): Promise<void> {
   await sql.query(
-    `insert into movements (store_id, date, concept, type, amount_usd, amount_ves, observacion)
-     values ($1, $2, $3, $4, $5, $6, $7)`,
+    `insert into movements (store_id, date, concept, type, amount_usd, amount_ves, amount_cop, observacion)
+     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
     [
       input.storeId,
       input.date,
@@ -94,6 +98,7 @@ export async function createMovement(input: {
       input.type,
       input.amountUsd,
       input.amountVes,
+      input.amountCop,
       input.observacion,
     ]
   );
@@ -115,12 +120,13 @@ export async function updateMovement(
     type: 'ingreso' | 'gasto';
     amountUsd: number;
     amountVes: number;
+    amountCop: number;
     observacion: string;
   }
 ): Promise<void> {
   await sql.query(
     `update movements
-     set date = $2, concept = $3, type = $4, amount_usd = $5, amount_ves = $6, observacion = $7
+     set date = $2, concept = $3, type = $4, amount_usd = $5, amount_ves = $6, amount_cop = $7, observacion = $8
      where id = $1`,
     [
       id,
@@ -129,6 +135,7 @@ export async function updateMovement(
       input.type,
       input.amountUsd,
       input.amountVes,
+      input.amountCop,
       input.observacion,
     ]
   );

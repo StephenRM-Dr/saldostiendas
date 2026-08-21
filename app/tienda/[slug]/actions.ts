@@ -31,25 +31,29 @@ type ParsedMovement = {
   type: 'ingreso' | 'gasto';
   amountUsd: number;
   amountVes: number;
+  amountCop: number;
   date: string;
   observacion: string;
 };
 
 function parseAndValidate(
-  formData: FormData
+  formData: FormData,
+  hasCop: boolean
 ): { ok: true; data: ParsedMovement } | { ok: false; error: string } {
   const concept = String(formData.get('concept') ?? '').trim();
   const type = formData.get('type') === 'gasto' ? 'gasto' : 'ingreso';
   const amountUsd = Number(formData.get('amountUsd') || 0);
   const amountVes = Number(formData.get('amountVes') || 0);
+  const amountCop = hasCop ? Number(formData.get('amountCop') || 0) : 0;
   const date = String(formData.get('date') ?? '');
   const observacion = String(formData.get('observacion') ?? '').trim();
 
   if (!concept) {
     return { ok: false, error: 'El concepto es obligatorio.' };
   }
-  if (amountUsd <= 0 && amountVes <= 0) {
-    return { ok: false, error: 'Debe indicar un monto en USD o en Bs mayor a cero.' };
+  if (amountUsd <= 0 && amountVes <= 0 && amountCop <= 0) {
+    const currencies = hasCop ? 'USD, Bs o COP' : 'USD o Bs';
+    return { ok: false, error: `Debe indicar un monto en ${currencies} mayor a cero.` };
   }
   if (!isValidISODate(date)) {
     return { ok: false, error: 'La fecha del movimiento no es válida.' };
@@ -60,7 +64,15 @@ function parseAndValidate(
 
   return {
     ok: true,
-    data: { concept, type: type as 'ingreso' | 'gasto', amountUsd, amountVes, date, observacion },
+    data: {
+      concept,
+      type: type as 'ingreso' | 'gasto',
+      amountUsd,
+      amountVes,
+      amountCop,
+      date,
+      observacion,
+    },
   };
 }
 
@@ -72,17 +84,17 @@ export async function addMovementAction(formData: FormData): Promise<ActionResul
     return { ok: false, error: INVALID_ID_ERROR };
   }
 
-  const parsed = parseAndValidate(formData);
+  const parsed = parseAndValidate(formData, slug === 'san-cristobal');
   if (!parsed.ok) {
     return parsed;
   }
-  const { concept, type, amountUsd, amountVes, date, observacion } = parsed.data;
+  const { concept, type, amountUsd, amountVes, amountCop, date, observacion } = parsed.data;
 
   if (isDateClosed(date)) {
     return { ok: false, error: DAY_CLOSED_ERROR };
   }
 
-  await createMovement({ storeId, date, concept, type, amountUsd, amountVes, observacion });
+  await createMovement({ storeId, date, concept, type, amountUsd, amountVes, amountCop, observacion });
   revalidatePath(`/tienda/${slug}`);
   return { ok: true };
 }
@@ -95,18 +107,18 @@ export async function updateMovementAction(formData: FormData): Promise<ActionRe
     return { ok: false, error: INVALID_ID_ERROR };
   }
 
-  const parsed = parseAndValidate(formData);
+  const parsed = parseAndValidate(formData, slug === 'san-cristobal');
   if (!parsed.ok) {
     return parsed;
   }
-  const { concept, type, amountUsd, amountVes, date, observacion } = parsed.data;
+  const { concept, type, amountUsd, amountVes, amountCop, date, observacion } = parsed.data;
 
   const persistedDate = await getMovementDate(id);
   if (persistedDate === null || isDateClosed(persistedDate) || isDateClosed(date)) {
     return { ok: false, error: DAY_CLOSED_ERROR };
   }
 
-  await updateMovement(id, { date, concept, type, amountUsd, amountVes, observacion });
+  await updateMovement(id, { date, concept, type, amountUsd, amountVes, amountCop, observacion });
   revalidatePath(`/tienda/${slug}`);
   return { ok: true };
 }
@@ -141,9 +153,16 @@ export async function sendReportAction(formData: FormData) {
     throw new Error('Esta tienda no tiene Telegram configurado.');
   }
 
+  const showCop = store.slug === 'san-cristobal';
   const ledger = await getDayLedger(store.id, date);
-  const caption = formatReportMessage(store.name, date, ledger, 'Reporte de Saldos');
-  const imageBuffer = await generateReportImageBuffer(store.name, date, ledger, 'Reporte de Saldos');
+  const caption = formatReportMessage(store.name, date, ledger, 'Reporte de Saldos', showCop);
+  const imageBuffer = await generateReportImageBuffer(
+    store.name,
+    date,
+    ledger,
+    'Reporte de Saldos',
+    showCop
+  );
   await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, caption, store.telegram_thread_id);
 }
 
@@ -183,6 +202,7 @@ export async function importStoreMovementsAction(formData: FormData): Promise<Im
       type: row.type,
       amountUsd: row.amountUsd,
       amountVes: row.amountVes,
+      amountCop: row.amountCop,
       observacion: row.observacion,
     });
     imported++;
