@@ -36,12 +36,12 @@ describe('formatReportMessage', () => {
       [
         '*San Cristóbal* — Cierre 17/08/2026',
         '',
-        'Saldo inicial: $150.00 / Bs 500.00',
+        'Saldo inicial: $150,00 / Bs 500,00',
         '',
-        'Ingreso Ventas Diarias  +$100.00',
-        'Cambio Zelle  -$50.00',
+        'Ingreso Ventas Diarias  +$100,00',
+        'Cambio Zelle  -$50,00',
         '',
-        'Saldo final: $200.00 / Bs 500.00',
+        'Saldo final: $200,00 / Bs 500,00',
       ].join('\n')
     );
   });
@@ -57,11 +57,11 @@ describe('formatReportMessage', () => {
       [
         '*Barinas* — Cierre 17/08/2026',
         '',
-        'Saldo inicial: $150.00 / Bs 500.00',
+        'Saldo inicial: $150,00 / Bs 500,00',
         '',
         'Sin movimientos hoy.',
         '',
-        'Saldo final: $150.00 / Bs 500.00',
+        'Saldo final: $150,00 / Bs 500,00',
       ].join('\n')
     );
   });
@@ -104,11 +104,11 @@ describe('formatReportMessage', () => {
       [
         '*Barinas* — Cierre 17/08/2026',
         '',
-        'Saldo inicial: $0.00 / Bs 0.00',
+        'Saldo inicial: $0,00 / Bs 0,00',
         '',
-        'Ingreso Ventas Diarias  +$43.00  +Bs1380.00',
+        'Ingreso Ventas Diarias  +$43,00  +Bs1.380,00',
         '',
-        'Saldo final: $43.00 / Bs 1380.00',
+        'Saldo final: $43,00 / Bs 1.380,00',
       ].join('\n')
     );
   });
@@ -142,11 +142,11 @@ describe('formatReportMessage', () => {
       [
         '*San Cristóbal* — Cierre 17/08/2026',
         '',
-        'Saldo inicial: $0.00 / Bs 0.00 / COP 0.00',
+        'Saldo inicial: $0,00 / Bs 0,00 / COP 0,00',
         '',
-        'Ingreso Ventas Diarias  +COP50000.00',
+        'Ingreso Ventas Diarias  +COP50.000,00',
         '',
-        'Saldo final: $0.00 / Bs 0.00 / COP 50000.00',
+        'Saldo final: $0,00 / Bs 0,00 / COP 50.000,00',
       ].join('\n')
     );
   });

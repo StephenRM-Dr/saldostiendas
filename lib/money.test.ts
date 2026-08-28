@@ -18,10 +18,18 @@ describe('toCents', () => {
 
 describe('formatMoney', () => {
   it('formats positive cents as a 2-decimal string', () => {
-    expect(formatMoney(12700)).toBe('127.00');
+    expect(formatMoney(12700)).toBe('127,00');
   });
 
   it('formats negative cents with a leading minus', () => {
-    expect(formatMoney(-50000)).toBe('-500.00');
+    expect(formatMoney(-50000)).toBe('-500,00');
+  });
+
+  it('uses a period as the thousands separator and a comma for decimals', () => {
+    expect(formatMoney(150000)).toBe('1.500,00');
+  });
+
+  it('formats large negative amounts with both separators', () => {
+    expect(formatMoney(-123456789)).toBe('-1.234.567,89');
   });
 });

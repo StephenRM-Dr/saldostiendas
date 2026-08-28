@@ -12,6 +12,9 @@ const VERTICAL_PADDING = 40;
 const YELLOW = '#fde047';
 const YELLOW_LIGHT = '#fef9c3';
 const WHITE = '#ffffff';
+const RED = '#dc2626';
+const GREEN = '#16a34a';
+const DEFAULT_TEXT = '#111827';
 
 export function calculateImageHeight(movementCount: number): number {
   const dataRows = Math.max(movementCount, 1);
@@ -31,6 +34,7 @@ function Row({
   cop,
   background,
   bold,
+  amountColor,
 }: {
   concept: string;
   usd: string;
@@ -38,7 +42,10 @@ function Row({
   cop?: string;
   background: string;
   bold?: boolean;
+  amountColor?: string;
 }) {
+  const amountFontWeight = amountColor || bold ? 700 : 400;
+
   return (
     <div
       style={{
@@ -61,6 +68,8 @@ function Row({
           alignItems: 'center',
           justifyContent: 'flex-end',
           padding: '0 12px',
+          color: amountColor ?? DEFAULT_TEXT,
+          fontWeight: amountFontWeight,
         }}
       >
         {usd}
@@ -72,6 +81,8 @@ function Row({
           alignItems: 'center',
           justifyContent: 'flex-end',
           padding: '0 12px',
+          color: amountColor ?? DEFAULT_TEXT,
+          fontWeight: amountFontWeight,
         }}
       >
         {ves}
@@ -84,6 +95,8 @@ function Row({
             alignItems: 'center',
             justifyContent: 'flex-end',
             padding: '0 12px',
+            color: amountColor ?? DEFAULT_TEXT,
+            fontWeight: amountFontWeight,
           }}
         >
           {cop}
@@ -153,6 +166,7 @@ export function buildReportImageElement(
             ves={signedAmount(m, 'amount_ves')}
             cop={showCop ? signedAmount(m, 'amount_cop') : undefined}
             background={WHITE}
+            amountColor={m.type === 'gasto' ? RED : GREEN}
           />
         ))
       )}
