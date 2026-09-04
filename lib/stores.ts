@@ -18,6 +18,12 @@ export interface Store {
   pin_locked_until: string | null;
 }
 
+const COP_ENABLED_SLUGS = new Set(['san-cristobal', 'concordia']);
+
+export function storeUsesCop(slug: string): boolean {
+  return COP_ENABLED_SLUGS.has(slug);
+}
+
 export async function listStores(): Promise<Store[]> {
   return (await sql.query(
     'select id, slug, name, telegram_chat_id, telegram_thread_id, pin, pin_failed_attempts, pin_locked_until from stores order by name'

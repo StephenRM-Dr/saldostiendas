@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listStores } from '@/lib/stores';
+import { listStores, storeUsesCop } from '@/lib/stores';
 import { getDayLedger } from '@/lib/movements';
 import { sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const showCop = store.slug === 'san-cristobal';
+      const showCop = storeUsesCop(store.slug);
       const ledger = await getDayLedger(store.id, date);
       const imageBuffer = await generateReportImageBuffer(store.name, date, ledger, undefined, showCop);
       await sendTelegramPhoto(store.telegram_chat_id, imageBuffer, store.telegram_thread_id);

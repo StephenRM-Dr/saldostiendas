@@ -10,7 +10,7 @@ import {
   getDayLedger,
   getMovementDate,
 } from '@/lib/movements';
-import { getStoreBySlug } from '@/lib/stores';
+import { getStoreBySlug, storeUsesCop } from '@/lib/stores';
 import { sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
 import { storeSessionCookieName } from '@/lib/storeAuth';
@@ -84,7 +84,7 @@ export async function addMovementAction(formData: FormData): Promise<ActionResul
     return { ok: false, error: INVALID_ID_ERROR };
   }
 
-  const parsed = parseAndValidate(formData, slug === 'san-cristobal');
+  const parsed = parseAndValidate(formData, storeUsesCop(slug));
   if (!parsed.ok) {
     return parsed;
   }
@@ -107,7 +107,7 @@ export async function updateMovementAction(formData: FormData): Promise<ActionRe
     return { ok: false, error: INVALID_ID_ERROR };
   }
 
-  const parsed = parseAndValidate(formData, slug === 'san-cristobal');
+  const parsed = parseAndValidate(formData, storeUsesCop(slug));
   if (!parsed.ok) {
     return parsed;
   }
@@ -153,7 +153,7 @@ export async function sendReportAction(formData: FormData) {
     throw new Error('Esta tienda no tiene Telegram configurado.');
   }
 
-  const showCop = store.slug === 'san-cristobal';
+  const showCop = storeUsesCop(store.slug);
   const ledger = await getDayLedger(store.id, date);
   const imageBuffer = await generateReportImageBuffer(
     store.name,

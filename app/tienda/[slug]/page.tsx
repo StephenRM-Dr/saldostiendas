@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { getStoreBySlug } from '@/lib/stores';
+import { getStoreBySlug, storeUsesCop } from '@/lib/stores';
 import { cookies } from 'next/headers';
 import { verifyStoreSession, storeSessionCookieName } from '@/lib/storeAuth';
 import { logoutAction } from './actions';
@@ -35,7 +35,7 @@ export default async function StorePage({
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayISOCaracas();
   const today = todayISOCaracas();
   const closed = isDateClosed(date);
-  const showCop = store.slug === 'san-cristobal';
+  const showCop = storeUsesCop(store.slug);
   const colSpan = showCop ? 5 : 4;
   const { movements, saldoInicial, saldoFinal } = await getDayLedger(store.id, date);
 
