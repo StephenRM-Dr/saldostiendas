@@ -26,6 +26,7 @@ alter table movements add column if not exists amount_cop numeric(12,2) not null
 alter table stores add column if not exists pin text;
 alter table stores add column if not exists pin_failed_attempts integer not null default 0;
 alter table stores add column if not exists pin_locked_until text;
+alter table stores add column if not exists session_id text;
 
 insert into stores (slug, name) values
   ('san-cristobal', 'San Cristóbal'),

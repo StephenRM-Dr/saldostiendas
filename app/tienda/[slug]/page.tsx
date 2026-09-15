@@ -28,7 +28,7 @@ export default async function StorePage({
 
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(storeSessionCookieName(store.slug))?.value;
-  if (!verifyStoreSession(sessionCookie, store.slug)) {
+  if (!verifyStoreSession(sessionCookie, store.slug, store.session_id)) {
     redirect(`/tienda/${store.slug}/login`);
   }
 

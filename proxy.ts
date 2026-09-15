@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isAuthorized } from '@/lib/adminAuth';
-import { verifyStoreSession, storeSessionCookieName } from '@/lib/storeAuth';
+import { checkStoreSession, storeSessionCookieName } from '@/lib/storeAuth';
+import { getStoreBySlug } from '@/lib/stores';
 
 function handleAdmin(request: NextRequest): Response {
   if (!process.env.ADMIN_PASSWORD) {
@@ -16,7 +17,7 @@ function handleAdmin(request: NextRequest): Response {
   return NextResponse.next();
 }
 
-function handleTienda(request: NextRequest): Response {
+async function handleTienda(request: NextRequest): Promise<Response> {
   const { pathname } = request.nextUrl;
   if (pathname.endsWith('/login') || pathname.endsWith('/manifest.webmanifest')) {
     return NextResponse.next();
@@ -31,14 +32,22 @@ function handleTienda(request: NextRequest): Response {
     return new Response('SESSION_SECRET no esta configurado en el servidor.', { status: 500 });
   }
 
+  const store = await getStoreBySlug(slug);
   const sessionCookie = request.cookies.get(storeSessionCookieName(slug))?.value;
-  if (!verifyStoreSession(sessionCookie, slug)) {
-    return NextResponse.redirect(new URL(`/tienda/${slug}/login`, request.url));
+  const status = checkStoreSession(sessionCookie, slug, store?.session_id ?? null);
+
+  if (status === 'valid') {
+    return NextResponse.next();
   }
-  return NextResponse.next();
+
+  const loginUrl = new URL(`/tienda/${slug}/login`, request.url);
+  if (status === 'replaced') {
+    loginUrl.searchParams.set('reason', 'replaced');
+  }
+  return NextResponse.redirect(loginUrl);
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {

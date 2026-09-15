@@ -26,12 +26,12 @@ export async function verifyPinAction(
       error: `Tienda bloqueada temporalmente. Intenta de nuevo en ${result.minutesRemaining} minuto(s).`,
     };
   }
-  if (!result.success) {
+  if (!result.success || !result.sessionId) {
     return { error: 'PIN incorrecto.' };
   }
 
   const cookieStore = await cookies();
-  cookieStore.set(storeSessionCookieName(slug), signStoreSession(slug), {
+  cookieStore.set(storeSessionCookieName(slug), signStoreSession(slug, result.sessionId), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

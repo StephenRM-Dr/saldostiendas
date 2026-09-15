@@ -10,7 +10,7 @@ import {
   getDayLedger,
   getMovementDate,
 } from '@/lib/movements';
-import { getStoreBySlug, storeUsesCop } from '@/lib/stores';
+import { getStoreBySlug, storeUsesCop, clearStoreSession } from '@/lib/stores';
 import { sendTelegramPhoto } from '@/lib/telegram';
 import { generateReportImageBuffer } from '@/lib/reportImage';
 import { storeSessionCookieName } from '@/lib/storeAuth';
@@ -213,6 +213,7 @@ export async function importStoreMovementsAction(formData: FormData): Promise<Im
 
 export async function logoutAction(formData: FormData) {
   const slug = String(formData.get('slug'));
+  await clearStoreSession(slug);
   const cookieStore = await cookies();
   cookieStore.delete(storeSessionCookieName(slug));
   redirect(`/tienda/${slug}/login`);
