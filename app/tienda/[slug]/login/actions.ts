@@ -35,7 +35,8 @@ export async function verifyPinAction(
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 30 * 24 * 60 * 60,
+    // No maxAge: this is a browser-session cookie, cleared when the browser
+    // closes, so a shared/forwarded link never skips the PIN on its own.
     path: '/',
   });
 
