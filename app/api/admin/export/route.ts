@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import ExcelJS from 'exceljs';
 import { listStores } from '@/lib/stores';
-import { getRangeLedger } from '@/lib/movements';
+import { getRangeLedgerByDay } from '@/lib/movements';
 import { buildStoreRows, type RowFilter } from '@/lib/adminExport';
 import { isAuthorized } from '@/lib/adminAuth';
 
@@ -69,8 +69,8 @@ export async function GET(request: NextRequest) {
   let buffer: ExcelJS.Buffer;
   try {
     for (const store of stores) {
-      const ledger = await getRangeLedger(store.id, from, to);
-      const rows = buildStoreRows(store.name, from, to, ledger, rowFilter);
+      const days = await getRangeLedgerByDay(store.id, from, to);
+      const rows = buildStoreRows(store.name, days, rowFilter);
       sheet.addRows(rows);
     }
 

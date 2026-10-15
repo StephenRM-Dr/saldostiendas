@@ -1,4 +1,4 @@
-import type { Movement } from './movements';
+import type { DayLedger } from './movements';
 import type { Balance } from './balance';
 
 export interface ExportRow {
@@ -19,33 +19,23 @@ export interface RowFilter {
   saldoFinal: boolean;
 }
 
-export function buildStoreRows(
-  storeName: string,
-  from: string,
-  to: string,
-  ledger: { movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance },
-  filter: RowFilter
-): ExportRow[] {
-  const rows: ExportRow[] = [];
+function buildSaldoRow(storeName: string, date: string, concepto: string, balance: Balance): ExportRow {
+  return {
+    tienda: storeName,
+    fecha: date,
+    concepto,
+    tipo: '',
+    montoUsd: balance.usdCents / 100,
+    montoVes: balance.vesCents / 100,
+    montoCop: balance.copCents / 100,
+    observacion: '',
+  };
+}
 
-  if (filter.saldoInicial) {
-    rows.push({
-      tienda: storeName,
-      fecha: from,
-      concepto: 'Saldo inicial del rango',
-      tipo: '',
-      montoUsd: ledger.saldoInicial.usdCents / 100,
-      montoVes: ledger.saldoInicial.vesCents / 100,
-      montoCop: ledger.saldoInicial.copCents / 100,
-      observacion: '',
-    });
-  }
-
-  for (const movement of ledger.movements) {
-    if (movement.type === 'ingreso' && !filter.ingreso) continue;
-    if (movement.type === 'gasto' && !filter.egreso) continue;
-
-    rows.push({
+function buildDayMovementRows(storeName: string, day: DayLedger, filter: RowFilter): ExportRow[] {
+  return day.movements
+    .filter((m) => (m.type === 'ingreso' ? filter.ingreso : filter.egreso))
+    .map((movement) => ({
       tienda: storeName,
       fecha: movement.date,
       concepto: movement.concept,
@@ -54,20 +44,20 @@ export function buildStoreRows(
       montoVes: Number(movement.amount_ves),
       montoCop: Number(movement.amount_cop),
       observacion: movement.observacion,
-    });
-  }
+    }));
+}
 
-  if (filter.saldoFinal) {
-    rows.push({
-      tienda: storeName,
-      fecha: to,
-      concepto: 'Saldo final del rango',
-      tipo: '',
-      montoUsd: ledger.saldoFinal.usdCents / 100,
-      montoVes: ledger.saldoFinal.vesCents / 100,
-      montoCop: ledger.saldoFinal.copCents / 100,
-      observacion: '',
-    });
+export function buildStoreRows(storeName: string, days: DayLedger[], filter: RowFilter): ExportRow[] {
+  const rows: ExportRow[] = [];
+
+  for (const day of days) {
+    if (filter.saldoInicial) {
+      rows.push(buildSaldoRow(storeName, day.date, 'Saldo inicial del día', day.saldoInicial));
+    }
+    rows.push(...buildDayMovementRows(storeName, day, filter));
+    if (filter.saldoFinal) {
+      rows.push(buildSaldoRow(storeName, day.date, 'Saldo final del día', day.saldoFinal));
+    }
   }
 
   return rows;

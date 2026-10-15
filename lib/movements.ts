@@ -1,5 +1,6 @@
 import { sql } from './db';
 import { computeBalance, type Balance } from './balance';
+import { enumerateDates } from './date';
 
 export interface Movement {
   id: number;
@@ -41,23 +42,48 @@ export async function getMovementsInRange(
   )) as Movement[];
 }
 
-export async function getRangeLedger(
+export interface DayLedger {
+  date: string;
+  movements: Movement[];
+  saldoInicial: Balance;
+  saldoFinal: Balance;
+}
+
+export async function getRangeLedgerByDay(
   storeId: number,
   from: string,
   to: string
-): Promise<{ movements: Movement[]; saldoInicial: Balance; saldoFinal: Balance }> {
+): Promise<DayLedger[]> {
   const [before, inRange] = await Promise.all([
     getMovementsBefore(storeId, from),
     getMovementsInRange(storeId, from, to),
   ]);
-  const saldoInicial = computeBalance(before);
-  const rangeChange = computeBalance(inRange);
-  const saldoFinal: Balance = {
-    usdCents: saldoInicial.usdCents + rangeChange.usdCents,
-    vesCents: saldoInicial.vesCents + rangeChange.vesCents,
-    copCents: saldoInicial.copCents + rangeChange.copCents,
-  };
-  return { movements: inRange, saldoInicial, saldoFinal };
+
+  const movementsByDate = new Map<string, Movement[]>();
+  for (const movement of inRange) {
+    const list = movementsByDate.get(movement.date);
+    if (list) {
+      list.push(movement);
+    } else {
+      movementsByDate.set(movement.date, [movement]);
+    }
+  }
+
+  let runningBalance = computeBalance(before);
+  const days: DayLedger[] = [];
+  for (const date of enumerateDates(from, to)) {
+    const dayMovements = movementsByDate.get(date) ?? [];
+    const saldoInicial = runningBalance;
+    const dayChange = computeBalance(dayMovements);
+    const saldoFinal: Balance = {
+      usdCents: saldoInicial.usdCents + dayChange.usdCents,
+      vesCents: saldoInicial.vesCents + dayChange.vesCents,
+      copCents: saldoInicial.copCents + dayChange.copCents,
+    };
+    days.push({ date, movements: dayMovements, saldoInicial, saldoFinal });
+    runningBalance = saldoFinal;
+  }
+  return days;
 }
 
 export async function getDayLedger(

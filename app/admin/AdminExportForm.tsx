@@ -44,7 +44,7 @@ export default function AdminExportForm() {
       <fieldset className="space-y-1">
         <legend className="text-sm">Incluir en el Excel</legend>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="rows" value="saldoInicial" defaultChecked /> Saldo inicial
+          <input type="checkbox" name="rows" value="saldoInicial" defaultChecked /> Saldo inicial (por día)
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="rows" value="ingreso" defaultChecked /> Ingresos
@@ -53,7 +53,7 @@ export default function AdminExportForm() {
           <input type="checkbox" name="rows" value="egreso" defaultChecked /> Egresos
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="rows" value="saldoFinal" defaultChecked /> Saldo final
+          <input type="checkbox" name="rows" value="saldoFinal" defaultChecked /> Saldo final (por día)
         </label>
       </fieldset>
       {error && <p className="text-sm text-red-600">{error}</p>}
